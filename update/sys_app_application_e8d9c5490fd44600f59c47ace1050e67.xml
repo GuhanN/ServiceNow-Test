@@ -16,8 +16,8 @@
         <sys_domain>global</sys_domain>
         <sys_domain_path>/</sys_domain_path>
         <sys_id>e8d9c5490fd44600f59c47ace1050e67</sys_id>
-        <sys_mod_count>1</sys_mod_count>
-        <sys_name>Cutom App</sys_name>
+        <sys_mod_count>2</sys_mod_count>
+        <sys_name>CutomApp</sys_name>
         <sys_overrides/>
         <sys_package display_value="Cutom App" source="x_5516_cutom_app">a4d945490fd44600f59c47ace1050ee7</sys_package>
         <sys_policy/>
@@ -25,8 +25,8 @@
         <sys_scope display_value="Cutom App">a4d945490fd44600f59c47ace1050ee7</sys_scope>
         <sys_update_name>sys_app_application_e8d9c5490fd44600f59c47ace1050e67</sys_update_name>
         <sys_updated_by>guhann</sys_updated_by>
-        <sys_updated_on>2015-05-26 11:41:23</sys_updated_on>
-        <title>Cutom App</title>
+        <sys_updated_on>2017-07-24 20:11:32</sys_updated_on>
+        <title>CutomApp</title>
         <view_name/>
     </sys_app_application>
 </record_update>
