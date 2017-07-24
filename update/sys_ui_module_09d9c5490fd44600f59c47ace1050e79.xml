@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record_update sys_domain="global" table="sys_ui_module">
+    <sys_ui_module action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <application display_value="Cutom App">89d9c5490fd44600f59c47ace1050e78</application>
+        <filter/>
+        <name>Cutom App Table</name>
+        <order/>
+        <path/>
+        <path_relative_to_root>false</path_relative_to_root>
+        <roles>x_5516_cutom_app_user</roles>
+        <sys_class_name>sys_ui_module</sys_class_name>
+        <sys_created_by>guhann</sys_created_by>
+        <sys_created_on>2015-05-26 11:41:25</sys_created_on>
+        <sys_customer_update>true</sys_customer_update>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>09d9c5490fd44600f59c47ace1050e79</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>Cutom App Table</sys_name>
+        <sys_package display_value="Cutom App" source="x_5516_cutom_app">a4d945490fd44600f59c47ace1050ee7</sys_package>
+        <sys_policy/>
+        <sys_replace_on_upgrade>false</sys_replace_on_upgrade>
+        <sys_scope display_value="Cutom App">a4d945490fd44600f59c47ace1050ee7</sys_scope>
+        <sys_update_name>sys_ui_module_09d9c5490fd44600f59c47ace1050e79</sys_update_name>
+        <sys_updated_by>guhann</sys_updated_by>
+        <sys_updated_on>2015-05-26 11:41:25</sys_updated_on>
+        <table>x_5516_cutom_app_table</table>
+        <uncancelable>false</uncancelable>
+        <view_name/>
+    </sys_ui_module>
+</record_update>

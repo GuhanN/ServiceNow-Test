@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record_update table="ldap_server_config">
+    <ldap_server_config action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <attributes/>
+        <authenticate>true</authenticate>
+        <connect_timeout>10</connect_timeout>
+        <dn>cn=Manager,dc=my-domain,dc=com</dn>
+        <dn_field/>
+        <listen_interval>5</listen_interval>
+        <listener>true</listener>
+        <map/>
+        <mid_server/>
+        <name>Bootcamp AD</name>
+        <paging>true</paging>
+        <password>lD1kgHstUWEUNIDVEHIV/A==</password>
+        <rdn>ou=users, dc=my-domain, dc=com</rdn>
+        <read_timeout>30</read_timeout>
+        <server_url>ldap://sncldap.vm-host.net:389/</server_url>
+        <ssl>false</ssl>
+        <sys_class_name>ldap_server_config</sys_class_name>
+        <sys_created_by>guhann</sys_created_by>
+        <sys_created_on>2015-05-26 13:03:25</sys_created_on>
+        <sys_customer_update>true</sys_customer_update>
+        <sys_id>9a9c11c90fd44600f59c47ace1050e94</sys_id>
+        <sys_mod_count>2</sys_mod_count>
+        <sys_name>Bootcamp AD</sys_name>
+        <sys_package display_value="Cutom App" source="x_5516_cutom_app">a4d945490fd44600f59c47ace1050ee7</sys_package>
+        <sys_policy/>
+        <sys_replace_on_upgrade>false</sys_replace_on_upgrade>
+        <sys_scope display_value="Cutom App">a4d945490fd44600f59c47ace1050ee7</sys_scope>
+        <sys_update_name>ldap_server_config_9a9c11c90fd44600f59c47ace1050e94</sys_update_name>
+        <sys_updated_by>guhann</sys_updated_by>
+        <sys_updated_on>2015-05-26 13:04:15</sys_updated_on>
+        <system_id>app128093.hkg1.service-now.com:dev14427001</system_id>
+        <vendor>active_directory</vendor>
+    </ldap_server_config>
+</record_update>

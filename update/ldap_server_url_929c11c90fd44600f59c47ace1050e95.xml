@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record_update table="ldap_server_url">
+    <ldap_server_url action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <operational_status>true</operational_status>
+        <order>100</order>
+        <server display_value="Bootcamp AD">9a9c11c90fd44600f59c47ace1050e94</server>
+        <sys_class_name>ldap_server_url</sys_class_name>
+        <sys_created_by>guhann</sys_created_by>
+        <sys_created_on>2015-05-26 13:03:25</sys_created_on>
+        <sys_customer_update>true</sys_customer_update>
+        <sys_id>929c11c90fd44600f59c47ace1050e95</sys_id>
+        <sys_mod_count>20</sys_mod_count>
+        <sys_name>ldap://sncldap.vm-host.net:389/</sys_name>
+        <sys_package display_value="Cutom App" source="x_5516_cutom_app">a4d945490fd44600f59c47ace1050ee7</sys_package>
+        <sys_policy/>
+        <sys_replace_on_upgrade>false</sys_replace_on_upgrade>
+        <sys_scope display_value="Cutom App">a4d945490fd44600f59c47ace1050ee7</sys_scope>
+        <sys_update_name>ldap_server_url_929c11c90fd44600f59c47ace1050e95</sys_update_name>
+        <sys_updated_by>guhann</sys_updated_by>
+        <sys_updated_on>2016-12-10 09:04:59</sys_updated_on>
+        <url>ldap://sncldap.vm-host.net:389/</url>
+    </ldap_server_url>
+</record_update>
