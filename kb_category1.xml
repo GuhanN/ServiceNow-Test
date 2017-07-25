@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<unload unload_date="2017-07-20 11:38:06">
+<sysauto_script action="INSERT_OR_UPDATE">
+<active>true</active>
+<condition/>
+<conditional>false</conditional>
+<name>Trigger notification to knowledge manager if article is pending retirement for 15 business days</name>
+<run_as display_value=""/>
+<run_as_tz/>
+<run_dayofmonth>1</run_dayofmonth>
+<run_dayofweek>1</run_dayofweek>
+<run_period/>
+<run_start>2017-07-13 12:36:13</run_start>
+<run_time>1969-12-31 23:30:00</run_time>
+<run_type>daily</run_type>
+<script><![CDATA[var scheduleID = gs.getProperty('schedule.8-18.weekdays');
+remindPendingRetirement();
+
+function remindPendingRetirement() {
+	// Send reminder notification to knowledge manager if article is pending-retirement for 15 business days
+	var grKnowledge = new GlideRecord('kb_knowledge');
+	grKnowledge.addEncodedQuery('workflow_state=pending_retirement');
+	grKnowledge.query();
+	
+	while(grKnowledge.next()) {
+		var grHistory = new GlideRecord('sys_history_line');
+		grHistory.addEncodedQuery("sys_created_on>="+grKnowledge.sys_created_on+"^set.id="+grKnowledge.sys_id+"^field=workflow_state^new_value=pending_retirement");
+		grHistory.orderByDesc('sys_created_on');
+		grHistory.query();
+		
+		if(grHistory.next()) {
+			var start = new GlideDateTime();
+			var leadDays = getDurationInDays(start, grHistory.sys_created_on.getGlideObject());
+			if(leadDays >= 15) {
+				gs.eventQueue('kb.article.retirement.reminder.15bizdays',grKnowledge,'','','');
+			}
+		}
+	}
+}
+
+function getDurationInDays(start, end) {
+	// Check business days duration based on schedule
+	var sched = new GlideSchedule(scheduleID);
+	var duration = sched.duration(end, start);
+	var durationValue = duration.getDurationValue();
+	return durationValue.split(' ')[0];
+}]]></script>
+<sys_class_name>sysauto_script</sys_class_name>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-13 14:14:51</sys_created_on>
+<sys_customer_update>true</sys_customer_update>
+<sys_id>f36bd53f4fbbfe0025f3ecd18110c7b9</sys_id>
+<sys_mod_count>5</sys_mod_count>
+<sys_name>Trigger notification to knowledge manager if article is pending retirement for 15 business days</sys_name>
+<sys_package display_value="Global">global</sys_package>
+<sys_policy/>
+<sys_replace_on_upgrade>false</sys_replace_on_upgrade>
+<sys_scope display_value="Global">global</sys_scope>
+<sys_update_name>sysauto_script_f36bd53f4fbbfe0025f3ecd18110c7b9</sys_update_name>
+<sys_updated_by>guhan.narayanan</sys_updated_by>
+<sys_updated_on>2017-07-16 12:31:10</sys_updated_on>
+<upgrade_safe>false</upgrade_safe>
+</sysauto_script>
+</unload>
