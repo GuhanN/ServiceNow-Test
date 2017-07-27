@@ -1,0 +1,1548 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<unload unload_date="2017-07-27 10:04:11">
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_widget_82b1c2440f548300f59c47ace1050e34</name>
+<payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;record_update table="sp_widget"&gt;&lt;sp_widget action="INSERT_OR_UPDATE"&gt;&lt;client_script&gt;&lt;![CDATA[function ($scope, spUtil) {
+	var c = this;
+	var encodedContent = '', folder = '', fileName = '';
+	$scope.table = "sys_update_set";
+	$scope.field = {};
+		$scope.descriptor = {
+			reference: $scope.table,
+			attributes: '',
+			name: '',
+			searchField: 'name',
+			qualifier: ''
+		};
+		
+		$scope.valueSelected = function() {
+			//console.log($scope.field);
+		}
+		
+		$scope.push2git = function() {
+			var updateSet = $scope.selected_update_set.value;
+			c.server.get({
+				action: 'get_xml',
+				sys_id: updateSet,
+			}).then(function(response) {
+				encodedContent = response.data.updateSet.encoded_update_set;
+				folder = response.data.updateSet.update_set_display_name;
+				fileName = response.data.updateSet.update_set_name;
+				encodedCustomerUpdates = response.data.customerUpdates.encoded_customer_updates;
+				customerUpdatesName = response.data.customerUpdates.customer_updates_name;
+				$scope.send2git();
+			});
+		}
+		
+		$scope.send2git = function() {
+			var obj = {
+				"message": "Commit from ServiceNow!",
+				"committer": {
+					"name": "GuhanN",
+					"email": "guhann1991@gmail.com"
+				},
+				"branch": "master",
+				"content": encodedContent,
+				"tree": "525656787163010b5020a19b6aa3ef6373ba68fc",
+				"parent": {
+					"sha": "525656787163010b5020a19b6aa3ef6373ba68fc"
+				}
+			};
+			
+			var requestBody = JSON.stringify(obj);
+			var client = new XMLHttpRequest();
+			client.open("PUT","https://api.github.com/repos/GuhanN/ServiceNow-Test/contents/"+folder+"/"+fileName);
+			client.setRequestHeader('Accept','application/json');
+			client.setRequestHeader('Content-Type','application/json');
+			client.setRequestHeader('Authorization', 'Basic '+btoa('guhann1991@gmail.com'+':'+'myPwd1@github'));
+			
+			client.onreadystatechange = function() {
+				if(this.readyState == this.DONE) {
+					//console.log('response: '+this.status + this.response);
+					if(this.status == 201) {
+						var obj1 = {
+							"message": "Commit from ServiceNow!",
+							"committer": {
+								"name": "GuhanN",
+								"email": "guhann1991@gmail.com"
+							},
+							"branch": "master",
+							"content": encodedCustomerUpdates,
+							"tree": "525656787163010b5020a19b6aa3ef6373ba68fc",
+							"parent": {
+								"sha": "525656787163010b5020a19b6aa3ef6373ba68fc"
+							}
+						};
+						
+						var requestBody1 = JSON.stringify(obj1);
+						var client1 = new XMLHttpRequest();
+						client1.open("PUT","https://api.github.com/repos/GuhanN/ServiceNow-Test/contents/"+folder+"/"+customerUpdatesName);
+						client1.setRequestHeader('Accept','application/json');
+						client1.setRequestHeader('Content-Type','application/json');
+						client1.setRequestHeader('Authorization', 'Basic '+btoa('guhann1991@gmail.com'+':'+'myPwd1@github'));
+						
+						client1.onreadystatechange = function() {
+							if(this.readyState == this.DONE) {
+								//console.log('response: '+this.status + this.response);
+								if(this.status == 201) {
+									spUtil.addInfoMessage('Update set has been uploaded to GIT location!');
+									$scope.selected_update_set.value = '';
+								}
+							}
+						};
+						client1.send(requestBody1);
+					}
+				}
+			};
+			client.send(requestBody);
+		}
+	}]]&gt;&lt;/client_script&gt;&lt;controller_as&gt;c&lt;/controller_as&gt;&lt;css/&gt;&lt;data_table&gt;sp_instance_table&lt;/data_table&gt;&lt;demo_data/&gt;&lt;description/&gt;&lt;docs/&gt;&lt;field_list/&gt;&lt;has_preview&gt;false&lt;/has_preview&gt;&lt;id/&gt;&lt;internal&gt;false&lt;/internal&gt;&lt;link/&gt;&lt;name&gt;PushUpdateSetToGIT&lt;/name&gt;&lt;option_schema/&gt;&lt;public&gt;false&lt;/public&gt;&lt;roles/&gt;&lt;script&gt;&lt;![CDATA[(function() {
+	try {
+		data.sys_id = '';
+		if (!input)
+			return;
+		
+		// Retrieve update set details
+		var updateSet = {};
+			var recordURL = "https://dev14427.service-now.com/sys_update_set.do?XML&amp;useUnloadFormat=true&amp;sysparm_query=sys_id="+input.sys_id;
+			var client = new GlideHTTPClient();
+			var method =  new Packages.org.apache.commons.httpclient.methods.GetMethod(recordURL);
+			var user = 'guhann';
+			var password = 'S@chin10dulkar';
+			client.setBasicAuth(user,password);
+			var status = client.executeMethod(method);
+			var updateSetXML = method.getResponseBodyAsString();
+			updateSet.encoded_update_set = GlideStringUtil.base64Encode(updateSetXML);
+			
+			var grUpdateSet = new GlideRecord('sys_update_set');
+			grUpdateSet.get(input.sys_id);
+			updateSet.update_set_display_name = grUpdateSet.name+'';
+			updateSet.update_set_name = 'sys_update_set_'+grUpdateSet.sys_id+'.xml';
+			data.updateSet = updateSet;
+			
+			// Retrieve customer updates details
+			var customerUpdates = {};
+				recordURL = "https://dev14427.service-now.com/sys_update_xml_list.do?XML&amp;useUnloadFormat=true&amp;sysparm_query=update_set="+input.sys_id;
+				client = new GlideHTTPClient();
+				method =  new Packages.org.apache.commons.httpclient.methods.GetMethod(recordURL);
+				client.setBasicAuth(user,password);
+				status = client.executeMethod(method);
+				var customerUpdateXML = method.getResponseBodyAsString();
+				customerUpdates.encoded_customer_updates = GlideStringUtil.base64Encode(customerUpdateXML);
+				customerUpdates.customer_updates_name = 'customer_updates.xml';
+				data.customerUpdates = customerUpdates;
+			}
+			catch(e) {
+				gs.log('Exception @ '+e.lineNumber + ', ' + e.message,'git');
+			}
+		})();]]&gt;&lt;/script&gt;&lt;servicenow&gt;false&lt;/servicenow&gt;&lt;sys_class_name&gt;sp_widget&lt;/sys_class_name&gt;&lt;sys_created_by&gt;guhann&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2017-07-26 21:56:17&lt;/sys_created_on&gt;&lt;sys_customer_update&gt;false&lt;/sys_customer_update&gt;&lt;sys_id&gt;82b1c2440f548300f59c47ace1050e34&lt;/sys_id&gt;&lt;sys_mod_count&gt;32&lt;/sys_mod_count&gt;&lt;sys_name&gt;PushUpdateSetToGIT&lt;/sys_name&gt;&lt;sys_package display_value="Global" source="global"&gt;global&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_replace_on_upgrade&gt;false&lt;/sys_replace_on_upgrade&gt;&lt;sys_scope display_value="Global"&gt;global&lt;/sys_scope&gt;&lt;sys_update_name&gt;sp_widget_82b1c2440f548300f59c47ace1050e34&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;guhann&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2017-07-27 10:03:38&lt;/sys_updated_on&gt;&lt;template&gt;&lt;![CDATA[&lt;br/&gt;
+&lt;br/&gt;
+&lt;span&gt;Publish update set(s) to GIT&lt;/span&gt;
+&lt;br/&gt;
+&lt;span&gt;
+  &lt;sn-reference-picker 
+  sn-options="{placeholder: 'Select an update set'}" 
+  ed="descriptor" field="selected_update_set" 
+  sn-on-change="valueSelected()" /&gt;
+&lt;/span&gt;
+&lt;br/&gt;
+&lt;button type="button" class="btn btn-primary" ng-click="push2git();"&gt;Push to GIT&lt;/button&gt;
+&lt;br/&gt;]]&gt;&lt;/template&gt;&lt;/sp_widget&gt;&lt;/record_update&gt;</payload>
+<payload_hash>1001913115</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:56:18</sys_created_on>
+<sys_id>06b10a840f548300f59c47ace1050e64</sys_id>
+<sys_mod_count>32</sys_mod_count>
+<sys_recorded_at>15d83806e970000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-27 10:03:38</sys_updated_on>
+<table/>
+<target_name>PushUpdateSetToGIT</target_name>
+<type>Widget</type>
+<update_domain>global</update_domain>
+<update_guid>64382c9c8310030027d1824629d5a54d</update_guid>
+<update_guid_history>64382c9c8310030027d1824629d5a54d:1001913115,e9c768947d5003008c45cc117b5da6db:-1752571157,03bc9c585f10030006955bff36ab126e:-1464524,876b98d8de1003004b8f0a9961dbea49:370004669,354914983a100300842c0b5644d1212f:-1321603608,ad885858831003006079b666f757ab0d:1617386306,09275498dc100300c997cd208a183908:141022882,6dc618585a100300cc131c51afb43be0:-1725733688,0e16141806100300929779c37db3b53d:825856393,32f5d6040394830001fc88fe8247f12a:-173894447,ad54d604c3948300745b6286ca19f754:711877235,5ee392c0c39483005326d91da586d08b:-885871972,6e521a80d79483009f8a83dc2e1ddfa8:1972504334,f32252c0019483003ae7dcc5be8b9aeb:-1524874818,8bd09640c59483003ef022248fdd47b0:-1318947875,20ff0200ae9483006b2b4b52ceba78c3:-1786963291,c26f8a4c9954830051f09d4c5e05e7d8:-562015594,db0e828c5e548300f70fd1199ccbdbc4:458767573,33ccc64c36548300b98efbd0b14249bd:-1534836876,34ac4ec84554830037cb85a7e3f70a9a:-1024293779,689b024852548300aa4c4c17c420fa39:1077859493,5eaa860cb15483005261557d1152541e:-691248219,dc39820cb25483004823383d73a64218:-1071235576,07d84648875483007825a9103285be90:1949267107,c8880e0823548300735dcd3b36a570c3:-1354746111,da46c248715483009139e4a624291b06:32489547,fd250248cf548300630e63ef779f6b31:-574439111,82e4c6c4a0548300c61111f30dc16d9d:-1738593290,d2a48a083454830016d2c2322f451fff:-2080943663,ab748a08855483008629b9409275dc8d:1296477111,0954c2c46b548300ef6d1b0048e9b65a:802649625,95e10a84dc548300ec49270ce4cea667:1978460824,42b10a849d548300ce8e67c682d2eb64:844111793</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_portal_16eebd800f548300f59c47ace1050e4c</name>
+<payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;record_update table="sp_portal"&gt;&lt;sp_portal action="INSERT_OR_UPDATE"&gt;&lt;css_variables&gt;$grid-gutter-width: 15px !default;&lt;/css_variables&gt;&lt;default&gt;false&lt;/default&gt;&lt;homepage display_value="sn2git_index"&gt;9aeff5800f548300f59c47ace1050eac&lt;/homepage&gt;&lt;icon/&gt;&lt;kb_knowledge_base/&gt;&lt;kb_knowledge_page/&gt;&lt;login_page display_value="landing"&gt;36c61807cb31120000f8d856634c9ca9&lt;/login_page&gt;&lt;logo/&gt;&lt;notfound_page display_value="404"&gt;3c2c9063cb11020000f8d856634c9c1f&lt;/notfound_page&gt;&lt;quick_start_config&gt;&lt;![CDATA[[{
+	"tagline": {
+		"table" : "sp_instance",
+		"sys_id" : "34fe3d96cb20020000f8d856634c9cf4",
+		"field" : "title"
+	},
+	"hero_background": {
+		"table" : "sp_container",
+		"sys_id" : "be98a8d2cb20020000f8d856634c9c63",
+		"field" : "background_image"
+	}
+}]]]&gt;&lt;/quick_start_config&gt;&lt;sc_catalog/&gt;&lt;sc_catalog_page/&gt;&lt;sc_category_page/&gt;&lt;sp_chat_queue/&gt;&lt;sp_rectangle_menu display_value="SP Header Menu"&gt;d150fd31cb10020000f8d856634c9ce6&lt;/sp_rectangle_menu&gt;&lt;sqanda_knowledge_base/&gt;&lt;sys_class_name&gt;sp_portal&lt;/sys_class_name&gt;&lt;sys_created_by&gt;guhann&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2017-07-26 21:44:01&lt;/sys_created_on&gt;&lt;sys_customer_update&gt;true&lt;/sys_customer_update&gt;&lt;sys_id&gt;16eebd800f548300f59c47ace1050e4c&lt;/sys_id&gt;&lt;sys_mod_count&gt;1&lt;/sys_mod_count&gt;&lt;sys_name&gt;SN2GIT&lt;/sys_name&gt;&lt;sys_package display_value="Global" source="global"&gt;global&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_replace_on_upgrade&gt;false&lt;/sys_replace_on_upgrade&gt;&lt;sys_scope display_value="Global"&gt;global&lt;/sys_scope&gt;&lt;sys_update_name&gt;sp_portal_16eebd800f548300f59c47ace1050e4c&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;guhann&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2017-07-26 21:59:56&lt;/sys_updated_on&gt;&lt;theme display_value="Stock"&gt;79315153cb33310000f8d856634c9c4b&lt;/theme&gt;&lt;title&gt;SN2GIT&lt;/title&gt;&lt;url_suffix&gt;sn2git&lt;/url_suffix&gt;&lt;/sp_portal&gt;&lt;/record_update&gt;</payload>
+<payload_hash>1130271693</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:44:01</sys_created_on>
+<sys_id>56eebd800f548300f59c47ace1050e4e</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>15d80e9de9b0000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:59:56</sys_updated_on>
+<table/>
+<target_name>SN2GIT</target_name>
+<type>Service Portal</type>
+<update_domain>global</update_domain>
+<update_guid>97820a845d548300059b95bd693ae186</update_guid>
+<update_guid_history>97820a845d548300059b95bd693ae186:1130271693,92eebd80b35483001390877f9b76944e:332733364</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_instance_table_6b42c2840f548300f59c47ace1050e47</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_instance_table"><sp_instance_table action="INSERT_OR_UPDATE"><active>true</active><class_name/><color>default</color><css/><display_field/><field_list/><filter/><glyph/><id/><maximum_entries>5</maximum_entries><order>1</order><order_by/><order_direction>asc</order_direction><roles/><short_description/><size>md</size><sp_column display_value="1">4e428e840f548300f59c47ace1050ef2</sp_column><sp_page/><sp_widget display_value="Copy of Table Reference">82b1c2440f548300f59c47ace1050e34</sp_widget><sys_class_name>sp_instance_table</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:58:52</sys_created_on><sys_customer_update>false</sys_customer_update><sys_id>6b42c2840f548300f59c47ace1050e47</sys_id><sys_mod_count>0</sys_mod_count><sys_name/><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_instance_table_6b42c2840f548300f59c47ace1050e47</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:58:52</sys_updated_on><table/><title/><url/><widget_parameters/></sp_instance_table></record_update>]]></payload>
+<payload_hash>569569562</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:58:52</sys_created_on>
+<sys_id>6342c2840f548300f59c47ace1050e49</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_recorded_at>15d80e8e19a0000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:58:52</sys_updated_on>
+<table/>
+<target_name/>
+<type>Instance with Table</type>
+<update_domain>global</update_domain>
+<update_guid>af42c284c1548300174d9052f1994548</update_guid>
+<update_guid_history>af42c284c1548300174d9052f1994548:569569562</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_column_4e428e840f548300f59c47ace1050ef2</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_column"><sp_column action="INSERT_OR_UPDATE"><class_name/><order>1</order><size>12</size><size_lg/><size_sm/><size_xs/><sp_row display_value="1">ce4286840f548300f59c47ace1050e3e</sp_row><sys_class_name>sp_column</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:58:45</sys_created_on><sys_customer_update>false</sys_customer_update><sys_id>4e428e840f548300f59c47ace1050ef2</sys_id><sys_mod_count>0</sys_mod_count><sys_name>1</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_column_4e428e840f548300f59c47ace1050ef2</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:58:45</sys_updated_on></sp_column></record_update>]]></payload>
+<payload_hash>-1297436055</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:58:45</sys_created_on>
+<sys_id>ca428e840f548300f59c47ace1050ef3</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_recorded_at>15d80e8c92c0000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:58:45</sys_updated_on>
+<table/>
+<target_name>1</target_name>
+<type>Column</type>
+<update_domain>global</update_domain>
+<update_guid>0a428e84545483006d44d0e518a6e0f3</update_guid>
+<update_guid_history>0a428e84545483006d44d0e518a6e0f3:-1297436055</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_row_ce4286840f548300f59c47ace1050e3e</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_row"><sp_row action="INSERT_OR_UPDATE"><class_name/><order>1</order><sp_column/><sp_container display_value="SN2GIT  - Container 1">9eeffd040f548300f59c47ace1050e91</sp_container><sys_class_name>sp_row</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:58:45</sys_created_on><sys_customer_update>false</sys_customer_update><sys_id>ce4286840f548300f59c47ace1050e3e</sys_id><sys_mod_count>0</sys_mod_count><sys_name>1</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_row_ce4286840f548300f59c47ace1050e3e</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:58:45</sys_updated_on></sp_row></record_update>]]></payload>
+<payload_hash>-1208123895</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:58:45</sys_created_on>
+<sys_id>ce4286840f548300f59c47ace1050e3f</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_recorded_at>15d80e8c9160000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:58:45</sys_updated_on>
+<table/>
+<target_name>1</target_name>
+<type>Row</type>
+<update_domain>global</update_domain>
+<update_guid>0e428684e1548300409ecd3f9a80543f</update_guid>
+<update_guid_history>0e428684e1548300409ecd3f9a80543f:-1208123895</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_container_9eeffd040f548300f59c47ace1050e9e</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_container"><sp_container action="INSERT_OR_UPDATE"><background_color/><background_image/><background_style>default</background_style><bootstrap_alt>false</bootstrap_alt><class_name>visible-xs</class_name><container_class_name/><name>SN2GIT  - Container 2</name><order>2</order><sp_page display_value="sn2git_index">9aeff5800f548300f59c47ace1050eac</sp_page><subheader>false</subheader><sys_class_name>sp_container</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:48:24</sys_created_on><sys_customer_update>false</sys_customer_update><sys_id>9eeffd040f548300f59c47ace1050e9e</sys_id><sys_mod_count>6</sys_mod_count><sys_name>SN2GIT  - Container 2</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_container_9eeffd040f548300f59c47ace1050e9e</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:57:33</sys_updated_on><title/><width>container</width></sp_container></record_update>]]></payload>
+<payload_hash>1064301280</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:24</sys_created_on>
+<sys_id>eaeffd040f548300f59c47ace1050e9f</sys_id>
+<sys_mod_count>6</sys_mod_count>
+<sys_recorded_at>15d80e7ae120000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:57:33</sys_updated_on>
+<table/>
+<target_name>SN2GIT  - Container 2</target_name>
+<type>Container</type>
+<update_domain>global</update_domain>
+<update_guid>1002cac0db54830097ae2e4a78a29ec6</update_guid>
+<update_guid_history>1002cac0db54830097ae2e4a78a29ec6:1064301280,43f18684ab548300f8e15266ed654e3c:-505255649,b770c6445a5483009008653750a62bff:1064301280,c570c6440c5483001c4f7999547b967b:-505255649,a020c244d1548300babafcd1aba6e419:-2074812578,2c000244b9548300a0bc12d0c4c243ee:-388955972,2aeffd04d35483000d609e28a308649f:1240804190</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_container_87f186840f548300f59c47ace1050e39</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_container"><sp_container action="DELETE"><background_color/><background_image/><background_style>default</background_style><bootstrap_alt>false</bootstrap_alt><class_name/><container_class_name/><name>SN2GIT  - Container 2</name><order>2</order><sp_page display_value="sn2git_index">9aeff5800f548300f59c47ace1050eac</sp_page><subheader>false</subheader><sys_class_name>sp_container</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:57:27</sys_created_on><sys_customer_update>false</sys_customer_update><sys_id>87f186840f548300f59c47ace1050e39</sys_id><sys_mod_count>0</sys_mod_count><sys_name>SN2GIT  - Container 2</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_container_87f186840f548300f59c47ace1050e39</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:57:27</sys_updated_on><title/><width>container</width></sp_container></record_update>]]></payload>
+<payload_hash>678033854</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:57:27</sys_created_on>
+<sys_id>c7f186840f548300f59c47ace1050e3a</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>15d80e7adf70000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:57:33</sys_updated_on>
+<table/>
+<target_name>SN2GIT  - Container 2</target_name>
+<type>Container</type>
+<update_domain>global</update_domain>
+<update_guid>9c02cac0a35483003e70020942237cc3</update_guid>
+<update_guid_history>9c02cac0a35483003e70020942237cc3:678033854,07f186849954830046c52c10e15da93a:-1522281398</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_container_a2effd040f548300f59c47ace1050eb5</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_container"><sp_container action="DELETE"><background_color/><background_image/><background_style>default</background_style><bootstrap_alt>false</bootstrap_alt><class_name>padding-top-lg</class_name><container_class_name/><name>SN2GIT  - Container 3</name><order>3</order><sp_page display_value="sn2git_index">9aeff5800f548300f59c47ace1050eac</sp_page><subheader>false</subheader><sys_class_name>sp_container</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:48:25</sys_created_on><sys_customer_update>false</sys_customer_update><sys_id>a2effd040f548300f59c47ace1050eb5</sys_id><sys_mod_count>4</sys_mod_count><sys_name>SN2GIT  - Container 3</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_container_a2effd040f548300f59c47ace1050eb5</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:50:58</sys_updated_on><title/><width>container</width></sp_container></record_update>]]></payload>
+<payload_hash>1269991674</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:25</sys_created_on>
+<sys_id>eeeffd040f548300f59c47ace1050eb5</sys_id>
+<sys_mod_count>5</sys_mod_count>
+<sys_recorded_at>15d80e238650000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:51:35</sys_updated_on>
+<table/>
+<target_name>SN2GIT  - Container 3</target_name>
+<type>Container</type>
+<update_domain>global</update_domain>
+<update_guid>8da08a4444548300876a933144ead34c</update_guid>
+<update_guid_history>8da08a4444548300876a933144ead34c:1269991674,bb700a440f548300ca2f63827bf0ef02:1541737606,8970c6444f548300271385b3e6dbf17e:-27819323,ac20c244a85483006dc2e876160ab71e:-1597376252,240002440c54830083006bfa6f42b2f0:-1189423628,2eeffd0487548300b2779fce438e22b5:1678337558</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_column_e6effd040f548300f59c47ace1050ebe</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_column"><sp_column action="DELETE"><class_name/><order>1</order><size>12</size><size_lg/><size_sm>4</size_sm><size_xs/><sp_row display_value="1">aaeffd040f548300f59c47ace1050eb6</sp_row><sys_class_name>sp_column</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:48:25</sys_created_on><sys_customer_update>false</sys_customer_update><sys_id>e6effd040f548300f59c47ace1050ebe</sys_id><sys_mod_count>1</sys_mod_count><sys_name>1</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_column_e6effd040f548300f59c47ace1050ebe</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:51:08</sys_updated_on></sp_column></record_update>]]></payload>
+<payload_hash>1260386112</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:25</sys_created_on>
+<sys_id>e2effd040f548300f59c47ace1050ebf</sys_id>
+<sys_mod_count>2</sys_mod_count>
+<sys_recorded_at>15d80e215500000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:51:26</sys_updated_on>
+<table/>
+<target_name>1</target_name>
+<type>Column</type>
+<update_domain>global</update_domain>
+<update_guid>ba908a44235483002442703126a0e11f</update_guid>
+<update_guid_history>ba908a44235483002442703126a0e11f:1260386112,de804a442a5483003a705ccbc04b5108:-1208440780,22effd0487548300768f57f4e6f4f3bf:1265353492</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_row_aaeffd040f548300f59c47ace1050eb6</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_row"><sp_row action="DELETE"><class_name/><order>1</order><sp_column/><sp_container display_value="SN2GIT  - Container 3">a2effd040f548300f59c47ace1050eb5</sp_container><sys_class_name>sp_row</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:48:25</sys_created_on><sys_customer_update>false</sys_customer_update><sys_id>aaeffd040f548300f59c47ace1050eb6</sys_id><sys_mod_count>0</sys_mod_count><sys_name>1</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_row_aaeffd040f548300f59c47ace1050eb6</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:48:25</sys_updated_on></sp_row></record_update>]]></payload>
+<payload_hash>1543306463</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:25</sys_created_on>
+<sys_id>e6effd040f548300f59c47ace1050eb7</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>15d80e2157d0000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:51:26</sys_updated_on>
+<table/>
+<target_name>1</target_name>
+<type>Row</type>
+<update_domain>global</update_domain>
+<update_guid>b2908a4407548300b64026d9223cc123</update_guid>
+<update_guid_history>b2908a4407548300b64026d9223cc123:1543306463,26effd0441548300d8891e4bd09cd5b7:108928953</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_instance_eeeffd040f548300f59c47ace1050ebf</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_instance"><sp_instance action="DELETE"><active>true</active><class_name/><color>default</color><css/><glyph/><id/><order>0</order><roles/><short_description/><size>md</size><sp_column display_value="">e6effd040f548300f59c47ace1050ebe</sp_column><sp_widget display_value="Subscribed Questions">2685ab42d730120023c84f80de6103a0</sp_widget><sys_class_name>sp_instance</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:48:25</sys_created_on><sys_customer_update>false</sys_customer_update><sys_id>eeeffd040f548300f59c47ace1050ebf</sys_id><sys_mod_count>0</sys_mod_count><sys_name>Subscribed Questions</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_instance_eeeffd040f548300f59c47ace1050ebf</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:48:25</sys_updated_on><title>Subscribed Questions</title><url/><widget_parameters/></sp_instance></record_update>]]></payload>
+<payload_hash>1706519111</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:25</sys_created_on>
+<sys_id>22effd040f548300f59c47ace1050ec1</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>15d80e215330000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:51:26</sys_updated_on>
+<table/>
+<target_name>Subscribed Questions</target_name>
+<type>Instance</type>
+<update_domain>global</update_domain>
+<update_guid>b6908a443a548300e015b334fa44381d</update_guid>
+<update_guid_history>b6908a443a548300e015b334fa44381d:1706519111,6eeffd042754830093dd2466c690c0c0:1684749877</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_instance_aaeffd040f548300f59c47ace1050ec1</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_instance"><sp_instance action="DELETE"><active>true</active><class_name/><color>default</color><css/><glyph/><id/><order>1</order><roles/><short_description/><size>md</size><sp_column display_value="">e6effd040f548300f59c47ace1050ebe</sp_column><sp_widget display_value="Popular Questions">e0c3a791d721120023c84f80de610304</sp_widget><sys_class_name>sp_instance</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:48:25</sys_created_on><sys_customer_update>false</sys_customer_update><sys_id>aaeffd040f548300f59c47ace1050ec1</sys_id><sys_mod_count>0</sys_mod_count><sys_name>Popular Questions</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_instance_aaeffd040f548300f59c47ace1050ec1</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:48:25</sys_updated_on><title>Popular Questions</title><url/><widget_parameters/></sp_instance></record_update>]]></payload>
+<payload_hash>-323730189</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:25</sys_created_on>
+<sys_id>aaeffd040f548300f59c47ace1050ec2</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>15d80e215050000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:51:26</sys_updated_on>
+<table/>
+<target_name>Popular Questions</target_name>
+<type>Instance</type>
+<update_domain>global</update_domain>
+<update_guid>7690c6c0f05483006c5230f607a983fe</update_guid>
+<update_guid_history>7690c6c0f05483006c5230f607a983fe:-323730189,e6effd04615483003a72501a2e5a53c2:1265243111</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_instance_vlist_e2effd040f548300f59c47ace1050eca</name>
+<payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;record_update table="sp_instance_vlist"&gt;&lt;sp_instance_vlist action="DELETE"&gt;&lt;active&gt;true&lt;/active&gt;&lt;class_name/&gt;&lt;color&gt;default&lt;/color&gt;&lt;css/&gt;&lt;display_field&gt;short_description&lt;/display_field&gt;&lt;field_list/&gt;&lt;filter table="service_task"&gt;active=true^opened_byDYNAMIC90d1921e5f510100a9ad2572f2b477fe^EQ&lt;item endquery="false" field="active" goto="false" newquery="false" operator="=" or="false" value="true"/&gt;&lt;item endquery="false" field="opened_by" goto="false" newquery="false" operator="DYNAMIC" or="false" value="90d1921e5f510100a9ad2572f2b477fe"/&gt;&lt;item endquery="true" field="" goto="false" newquery="false" operator="=" or="false" value=""/&gt;&lt;/filter&gt;&lt;glyph/&gt;&lt;id/&gt;&lt;maximum_entries&gt;20&lt;/maximum_entries&gt;&lt;order&gt;3&lt;/order&gt;&lt;order_by&gt;sys_updated_on&lt;/order_by&gt;&lt;order_direction&gt;desc&lt;/order_direction&gt;&lt;roles/&gt;&lt;short_description/&gt;&lt;size&gt;md&lt;/size&gt;&lt;sp_column display_value=""&gt;e2effd040f548300f59c47ace1050ec3&lt;/sp_column&gt;&lt;sp_page display_value="ticket"&gt;84af292247132100ba13a5554ee4909e&lt;/sp_page&gt;&lt;sp_widget display_value="Simple List"&gt;5b255672cb03020000f8d856634c9c28&lt;/sp_widget&gt;&lt;sys_class_name&gt;sp_instance_vlist&lt;/sys_class_name&gt;&lt;sys_created_by&gt;guhann&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2017-07-26 21:48:25&lt;/sys_created_on&gt;&lt;sys_customer_update&gt;false&lt;/sys_customer_update&gt;&lt;sys_id&gt;e2effd040f548300f59c47ace1050eca&lt;/sys_id&gt;&lt;sys_mod_count&gt;0&lt;/sys_mod_count&gt;&lt;sys_name&gt;My Service Requests&lt;/sys_name&gt;&lt;sys_package display_value="Global" source="global"&gt;global&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_replace_on_upgrade&gt;false&lt;/sys_replace_on_upgrade&gt;&lt;sys_scope display_value="Global"&gt;global&lt;/sys_scope&gt;&lt;sys_update_name&gt;sp_instance_vlist_e2effd040f548300f59c47ace1050eca&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;guhann&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2017-07-26 21:48:25&lt;/sys_updated_on&gt;&lt;table&gt;service_task&lt;/table&gt;&lt;title&gt;My Service Requests&lt;/title&gt;&lt;url/&gt;&lt;widget_parameters&gt;&lt;![CDATA[{
+	"always_show": {
+		"displayValue": false,
+		"value": false
+	},
+	"image_field": {
+		"value": null,
+		"displayValue": ""
+	},
+	"secondary_fields": {
+		"value": "number,sys_updated_on",
+		"displayValue": "number,sys_updated_on"
+	},
+	"panel_body_height": {
+		"value": null,
+		"displayValue": ""
+	},
+	"rounded_images": {
+		"displayValue": true,
+		"value": true
+	}
+}]]&gt;&lt;/widget_parameters&gt;&lt;/sp_instance_vlist&gt;&lt;/record_update&gt;</payload>
+<payload_hash>1060379082</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:25</sys_created_on>
+<sys_id>a2effd040f548300f59c47ace1050ecb</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>15d80e1fa400000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:51:19</sys_updated_on>
+<table>service_task</table>
+<target_name>My Service Requests</target_name>
+<type>Instance of Simple List</type>
+<update_domain>global</update_domain>
+<update_guid>41904a44105483007dfaecc39e642fc1</update_guid>
+<update_guid_history>41904a44105483007dfaecc39e642fc1:1060379082,eeeffd04d95483002aecd9b5177fd2ca:910586881</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_column_e2effd040f548300f59c47ace1050ec3</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_column"><sp_column action="DELETE"><class_name/><order>2</order><size>12</size><size_lg/><size_sm>4</size_sm><size_xs/><sp_row display_value="1">aaeffd040f548300f59c47ace1050eb6</sp_row><sys_class_name>sp_column</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:48:25</sys_created_on><sys_customer_update>false</sys_customer_update><sys_id>e2effd040f548300f59c47ace1050ec3</sys_id><sys_mod_count>1</sys_mod_count><sys_name>2</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_column_e2effd040f548300f59c47ace1050ec3</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:51:08</sys_updated_on></sp_column></record_update>]]></payload>
+<payload_hash>-560786912</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:25</sys_created_on>
+<sys_id>eeeffd040f548300f59c47ace1050ec3</sys_id>
+<sys_mod_count>2</sys_mod_count>
+<sys_recorded_at>15d80e1fa8c0000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:51:19</sys_updated_on>
+<table/>
+<target_name>2</target_name>
+<type>Column</type>
+<update_domain>global</update_domain>
+<update_guid>c1904a44555483000e644c675e4dd7c7</update_guid>
+<update_guid_history>c1904a44555483000e644c675e4dd7c7:-560786912,5e804a4480548300bf00142c3d2ee90c:1265353492,2eeffd04ed54830038f746b7645cffc3:-555819532</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_instance_eaeffd040f548300f59c47ace1050ec4</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_instance"><sp_instance action="DELETE"><active>true</active><class_name/><color>default</color><css/><glyph/><id/><order>0</order><roles/><short_description/><size>md</size><sp_column display_value="">e2effd040f548300f59c47ace1050ec3</sp_column><sp_widget display_value="Login">6506d341cb33020000f8d856634c9cdc</sp_widget><sys_class_name>sp_instance</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:48:25</sys_created_on><sys_customer_update>false</sys_customer_update><sys_id>eaeffd040f548300f59c47ace1050ec4</sys_id><sys_mod_count>0</sys_mod_count><sys_name>Login</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_instance_eaeffd040f548300f59c47ace1050ec4</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:48:25</sys_updated_on><title>Login</title><url/><widget_parameters/></sp_instance></record_update>]]></payload>
+<payload_hash>1464446001</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:25</sys_created_on>
+<sys_id>2eeffd040f548300f59c47ace1050ec5</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>15d80e1fa6f0000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:51:19</sys_updated_on>
+<table/>
+<target_name>Login</target_name>
+<type>Instance</type>
+<update_domain>global</update_domain>
+<update_guid>cd904a44bb548300d3ac4e71cb68d5c4</update_guid>
+<update_guid_history>cd904a44bb548300d3ac4e71cb68d5c4:1464446001,6aeffd04765483006fd3444ae4069ec5:-609043196</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_instance_vlist_62effd040f548300f59c47ace1050ec8</name>
+<payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;record_update table="sp_instance_vlist"&gt;&lt;sp_instance_vlist action="DELETE"&gt;&lt;active&gt;true&lt;/active&gt;&lt;class_name/&gt;&lt;color&gt;default&lt;/color&gt;&lt;css/&gt;&lt;display_field&gt;short_description&lt;/display_field&gt;&lt;field_list/&gt;&lt;filter table="incident"&gt;opened_byDYNAMIC90d1921e5f510100a9ad2572f2b477fe^active=true^EQ&lt;item endquery="false" field="opened_by" goto="false" newquery="false" operator="DYNAMIC" or="false" value="90d1921e5f510100a9ad2572f2b477fe"/&gt;&lt;item endquery="false" field="active" goto="false" newquery="false" operator="=" or="false" value="true"/&gt;&lt;item endquery="true" field="" goto="false" newquery="false" operator="=" or="false" value=""/&gt;&lt;/filter&gt;&lt;glyph/&gt;&lt;id/&gt;&lt;maximum_entries&gt;20&lt;/maximum_entries&gt;&lt;order&gt;2&lt;/order&gt;&lt;order_by&gt;sys_updated_on&lt;/order_by&gt;&lt;order_direction&gt;desc&lt;/order_direction&gt;&lt;roles/&gt;&lt;short_description/&gt;&lt;size&gt;md&lt;/size&gt;&lt;sp_column display_value=""&gt;e2effd040f548300f59c47ace1050ec3&lt;/sp_column&gt;&lt;sp_page display_value="ticket"&gt;84af292247132100ba13a5554ee4909e&lt;/sp_page&gt;&lt;sp_widget display_value="Simple List"&gt;5b255672cb03020000f8d856634c9c28&lt;/sp_widget&gt;&lt;sys_class_name&gt;sp_instance_vlist&lt;/sys_class_name&gt;&lt;sys_created_by&gt;guhann&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2017-07-26 21:48:25&lt;/sys_created_on&gt;&lt;sys_customer_update&gt;false&lt;/sys_customer_update&gt;&lt;sys_id&gt;62effd040f548300f59c47ace1050ec8&lt;/sys_id&gt;&lt;sys_mod_count&gt;0&lt;/sys_mod_count&gt;&lt;sys_name&gt;My Open Incidents&lt;/sys_name&gt;&lt;sys_package display_value="Global" source="global"&gt;global&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_replace_on_upgrade&gt;false&lt;/sys_replace_on_upgrade&gt;&lt;sys_scope display_value="Global"&gt;global&lt;/sys_scope&gt;&lt;sys_update_name&gt;sp_instance_vlist_62effd040f548300f59c47ace1050ec8&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;guhann&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2017-07-26 21:48:25&lt;/sys_updated_on&gt;&lt;table&gt;incident&lt;/table&gt;&lt;title&gt;My Open Incidents&lt;/title&gt;&lt;url/&gt;&lt;widget_parameters&gt;&lt;![CDATA[{
+	"always_show": {
+		"displayValue": false,
+		"value": false
+	},
+	"image_field": {
+		"value": null,
+		"displayValue": ""
+	},
+	"secondary_fields": {
+		"value": "number,sys_updated_on",
+		"displayValue": "number,sys_updated_on"
+	},
+	"panel_body_height": {
+		"value": null,
+		"displayValue": ""
+	},
+	"rounded_images": {
+		"displayValue": true,
+		"value": true
+	}
+}]]&gt;&lt;/widget_parameters&gt;&lt;/sp_instance_vlist&gt;&lt;/record_update&gt;</payload>
+<payload_hash>-204539569</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:25</sys_created_on>
+<sys_id>e6effd040f548300f59c47ace1050ec9</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>15d80e1f9db0000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:51:19</sys_updated_on>
+<table>incident</table>
+<target_name>My Open Incidents</target_name>
+<type>Instance of Simple List</type>
+<update_domain>global</update_domain>
+<update_guid>c9904a441554830022a88305d49374b8</update_guid>
+<update_guid_history>c9904a441554830022a88305d49374b8:-204539569,26effd0456548300949ac5d78775f5c9:120672950</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_instance_a6effd040f548300f59c47ace1050ec6</name>
+<payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;record_update table="sp_instance"&gt;&lt;sp_instance action="DELETE"&gt;&lt;active&gt;true&lt;/active&gt;&lt;class_name/&gt;&lt;color&gt;default&lt;/color&gt;&lt;css/&gt;&lt;glyph/&gt;&lt;id/&gt;&lt;order&gt;1&lt;/order&gt;&lt;roles/&gt;&lt;short_description/&gt;&lt;size&gt;md&lt;/size&gt;&lt;sp_column display_value=""&gt;e2effd040f548300f59c47ace1050ec3&lt;/sp_column&gt;&lt;sp_widget display_value="Approvals"&gt;f37aa302cb70020000f8d856634c9cfc&lt;/sp_widget&gt;&lt;sys_class_name&gt;sp_instance&lt;/sys_class_name&gt;&lt;sys_created_by&gt;guhann&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2017-07-26 21:48:25&lt;/sys_created_on&gt;&lt;sys_customer_update&gt;false&lt;/sys_customer_update&gt;&lt;sys_id&gt;a6effd040f548300f59c47ace1050ec6&lt;/sys_id&gt;&lt;sys_mod_count&gt;0&lt;/sys_mod_count&gt;&lt;sys_name&gt;My Approvals&lt;/sys_name&gt;&lt;sys_package display_value="Global" source="global"&gt;global&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_replace_on_upgrade&gt;false&lt;/sys_replace_on_upgrade&gt;&lt;sys_scope display_value="Global"&gt;global&lt;/sys_scope&gt;&lt;sys_update_name&gt;sp_instance_a6effd040f548300f59c47ace1050ec6&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;guhann&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2017-07-26 21:48:25&lt;/sys_updated_on&gt;&lt;title&gt;My Approvals&lt;/title&gt;&lt;url/&gt;&lt;widget_parameters&gt;&lt;![CDATA[{
+	"portal": {
+		"value": "true",
+		"displayValue": "true"
+	}
+}]]&gt;&lt;/widget_parameters&gt;&lt;/sp_instance&gt;&lt;/record_update&gt;</payload>
+<payload_hash>946173303</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:25</sys_created_on>
+<sys_id>a6effd040f548300f59c47ace1050ec7</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>15d80e1fa0f0000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:51:19</sys_updated_on>
+<table/>
+<target_name>My Approvals</target_name>
+<type>Instance</type>
+<update_domain>global</update_domain>
+<update_guid>c9904a443e5483000585312f20376cbc</update_guid>
+<update_guid_history>c9904a443e5483000585312f20376cbc:946173303,e2effd042d54830095d3bcd4ad7b2bc7:-1931882516</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_column_62effd040f548300f59c47ace1050eb8</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_column"><sp_column action="DELETE"><class_name/><order>1</order><size>12</size><size_lg/><size_sm>4</size_sm><size_xs/><sp_row display_value="1">aaeffd040f548300f59c47ace1050eb6</sp_row><sys_class_name>sp_column</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:48:25</sys_created_on><sys_customer_update>false</sys_customer_update><sys_id>62effd040f548300f59c47ace1050eb8</sys_id><sys_mod_count>0</sys_mod_count><sys_name>1</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_column_62effd040f548300f59c47ace1050eb8</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:48:25</sys_updated_on></sp_column></record_update>]]></payload>
+<payload_hash>1260386112</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:25</sys_created_on>
+<sys_id>aeeffd040f548300f59c47ace1050eb8</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>15d80e1ccf80000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:51:08</sys_updated_on>
+<table/>
+<target_name>1</target_name>
+<type>Column</type>
+<update_domain>global</update_domain>
+<update_guid>52804a447b54830029a02d972cadb405</update_guid>
+<update_guid_history>52804a447b54830029a02d972cadb405:1260386112,eaeffd049a54830069bf6c4339c836b8:-1208440780</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_instance_aeeffd040f548300f59c47ace1050ebc</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_instance"><sp_instance action="DELETE"><active>true</active><class_name/><color>default</color><css/><glyph/><id/><order>1</order><roles/><short_description/><size>md</size><sp_column display_value="">62effd040f548300f59c47ace1050eb8</sp_column><sp_widget display_value="KB Top Rated">3c817b52cb30020000f8d856634c9cfb</sp_widget><sys_class_name>sp_instance</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:48:25</sys_created_on><sys_customer_update>false</sys_customer_update><sys_id>aeeffd040f548300f59c47ace1050ebc</sys_id><sys_mod_count>1</sys_mod_count><sys_name>Top Rated Articles</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_instance_aeeffd040f548300f59c47ace1050ebc</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:49:42</sys_updated_on><title>Top Rated Articles</title><url/><widget_parameters/></sp_instance></record_update>]]></payload>
+<payload_hash>-539038728</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:25</sys_created_on>
+<sys_id>aeeffd040f548300f59c47ace1050ebd</sys_id>
+<sys_mod_count>2</sys_mod_count>
+<sys_recorded_at>15d80e1ccd80000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:51:07</sys_updated_on>
+<table/>
+<target_name>Top Rated Articles</target_name>
+<type>Instance</type>
+<update_domain>global</update_domain>
+<update_guid>5e804a44c454830010630a57f7367702</update_guid>
+<update_guid_history>5e804a44c454830010630a57f7367702:-539038728,dd30064460548300afcc25467d53b124:-231156507,eaeffd042e548300292bb34c955cfcbd:-1535105212</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_instance_66effd040f548300f59c47ace1050ebb</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_instance"><sp_instance action="DELETE"><active>true</active><class_name/><color>default</color><css/><glyph>tasks</glyph><id/><order>0</order><roles/><short_description/><size>md</size><sp_column display_value="">62effd040f548300f59c47ace1050eb8</sp_column><sp_widget display_value="KB News">ad2326a45b110200e23dc7ad31f91a1e</sp_widget><sys_class_name>sp_instance</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:48:25</sys_created_on><sys_customer_update>false</sys_customer_update><sys_id>66effd040f548300f59c47ace1050ebb</sys_id><sys_mod_count>1</sys_mod_count><sys_name>News</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_instance_66effd040f548300f59c47ace1050ebb</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:49:42</sys_updated_on><title>News</title><url/><widget_parameters/></sp_instance></record_update>]]></payload>
+<payload_hash>1107589651</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:25</sys_created_on>
+<sys_id>66effd040f548300f59c47ace1050ebc</sys_id>
+<sys_mod_count>2</sys_mod_count>
+<sys_recorded_at>15d80e1cc960000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:51:07</sys_updated_on>
+<table/>
+<target_name>News</target_name>
+<type>Instance</type>
+<update_domain>global</update_domain>
+<update_guid>9e800a4435548300ae28044d315b85fe</update_guid>
+<update_guid_history>9e800a4435548300ae28044d315b85fe:1107589651,9d30064414548300b172d7456e55ea21:1663906520,a2effd049c548300b565e6fb4c47cfbc:1121049753</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_container_9eeffd040f548300f59c47ace1050e91</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_container"><sp_container action="INSERT_OR_UPDATE"><background_color/><background_image/><background_style>cover</background_style><bootstrap_alt>false</bootstrap_alt><class_name>hidden-xs</class_name><container_class_name/><name>SN2GIT  - Container 1</name><order>1</order><sp_page display_value="sn2git_index">9aeff5800f548300f59c47ace1050eac</sp_page><subheader>false</subheader><sys_class_name>sp_container</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:48:24</sys_created_on><sys_customer_update>true</sys_customer_update><sys_id>9eeffd040f548300f59c47ace1050e91</sys_id><sys_mod_count>3</sys_mod_count><sys_name>SN2GIT  - Container 1</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_container_9eeffd040f548300f59c47ace1050e91</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:50:58</sys_updated_on><title/><width>container</width></sp_container></record_update>]]></payload>
+<payload_hash>2137514357</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:24</sys_created_on>
+<sys_id>52effd040f548300f59c47ace1050e93</sys_id>
+<sys_mod_count>3</sys_mod_count>
+<sys_recorded_at>15d80e1a66f0000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:50:58</sys_updated_on>
+<table/>
+<target_name>SN2GIT  - Container 1</target_name>
+<type>Container</type>
+<update_domain>global</update_domain>
+<update_guid>b770c6444a5483007483a22a360760fd</update_guid>
+<update_guid_history>b770c6444a5483007483a22a360760fd:2137514357,a020c24400548300302e257856bd7e11:567957428,2400024459548300d66b3d3e5641f3ed:-860359319,9eeffd04115483003f0de23c2a9bfc92:-804247861</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_container_5eeffd040f548300f59c47ace1050e93</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_container"><sp_container action="DELETE"><background_color/><background_image/><background_style>cover</background_style><bootstrap_alt>false</bootstrap_alt><class_name>hidden-xs</class_name><container_class_name/><name>SN2GIT  - Container 1</name><order>1</order><sp_page display_value="sn2git_index">9aeff5800f548300f59c47ace1050eac</sp_page><subheader>false</subheader><sys_class_name>sp_container</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:48:24</sys_created_on><sys_customer_update>false</sys_customer_update><sys_id>5eeffd040f548300f59c47ace1050e93</sys_id><sys_mod_count>1</sys_mod_count><sys_name>SN2GIT  - Container 1</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_container_5eeffd040f548300f59c47ace1050e93</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:48:49</sys_updated_on><title/><width>container</width></sp_container></record_update>]]></payload>
+<payload_hash>1204993921</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:24</sys_created_on>
+<sys_id>9aeffd040f548300f59c47ace1050e94</sys_id>
+<sys_mod_count>2</sys_mod_count>
+<sys_recorded_at>15d80e1a6520000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:50:58</sys_updated_on>
+<table/>
+<target_name>SN2GIT  - Container 1</target_name>
+<type>Container</type>
+<update_domain>global</update_domain>
+<update_guid>b770c644075483009a97c2cfcb2f95fb</update_guid>
+<update_guid_history>b770c644075483009a97c2cfcb2f95fb:1204993921,e800c64c34108300200c5a998157988d:-860359319,d6effd04b5548300e332b4d375921e94:-804247861</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_instance_9eeffd040f548300f59c47ace1050e9c</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_instance"><sp_instance action="DELETE"><active>true</active><class_name/><color>default</color><css/><glyph/><id/><order>0</order><roles/><short_description/><size>lg</size><sp_column display_value="">deeffd040f548300f59c47ace1050e9a</sp_column><sp_widget display_value="Homepage Search">200fbd96cb20020000f8d856634c9ca1</sp_widget><sys_class_name>sp_instance</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:48:24</sys_created_on><sys_customer_update>false</sys_customer_update><sys_id>9eeffd040f548300f59c47ace1050e9c</sys_id><sys_mod_count>0</sys_mod_count><sys_name>How can we help?</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_instance_9eeffd040f548300f59c47ace1050e9c</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:48:24</sys_updated_on><title>How can we help?</title><url/><widget_parameters/></sp_instance></record_update>]]></payload>
+<payload_hash>-1865220265</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:24</sys_created_on>
+<sys_id>16effd040f548300f59c47ace1050e9e</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>15d80e1a5740000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:50:57</sys_updated_on>
+<table/>
+<target_name>How can we help?</target_name>
+<type>Instance</type>
+<update_domain>global</update_domain>
+<update_guid>3f70c6447e54830051b0f56388a2acef</update_guid>
+<update_guid_history>3f70c6447e54830051b0f56388a2acef:-1865220265,52effd04135483002e160b2cf8a1f79e:-1223675024</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_row_92effd040f548300f59c47ace1050e99</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_row"><sp_row action="DELETE"><class_name/><order>1</order><sp_column/><sp_container display_value="">5eeffd040f548300f59c47ace1050e93</sp_container><sys_class_name>sp_row</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:48:24</sys_created_on><sys_customer_update>false</sys_customer_update><sys_id>92effd040f548300f59c47ace1050e99</sys_id><sys_mod_count>0</sys_mod_count><sys_name>1</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_row_92effd040f548300f59c47ace1050e99</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:48:24</sys_updated_on></sp_row></record_update>]]></payload>
+<payload_hash>253624917</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:24</sys_created_on>
+<sys_id>16effd040f548300f59c47ace1050e9a</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>15d80e1a5c00000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:50:57</sys_updated_on>
+<table/>
+<target_name>1</target_name>
+<type>Row</type>
+<update_domain>global</update_domain>
+<update_guid>3b70c6448e548300d79480d81e0565f4</update_guid>
+<update_guid_history>3b70c6448e548300d79480d81e0565f4:253624917,52effd04c75483006f316877c4ecc89a:2075084765</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_column_deeffd040f548300f59c47ace1050e9a</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_column"><sp_column action="DELETE"><class_name/><order>1</order><size>12</size><size_lg/><size_sm>12</size_sm><size_xs/><sp_row display_value="">92effd040f548300f59c47ace1050e99</sp_row><sys_class_name>sp_column</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:48:24</sys_created_on><sys_customer_update>false</sys_customer_update><sys_id>deeffd040f548300f59c47ace1050e9a</sys_id><sys_mod_count>0</sys_mod_count><sys_name>1</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_column_deeffd040f548300f59c47ace1050e9a</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:48:24</sys_updated_on></sp_column></record_update>]]></payload>
+<payload_hash>-1559788113</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:24</sys_created_on>
+<sys_id>52effd040f548300f59c47ace1050e9c</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>15d80e1a59b0000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:50:57</sys_updated_on>
+<table/>
+<target_name>1</target_name>
+<type>Column</type>
+<update_domain>global</update_domain>
+<update_guid>b370c64442548300a9b926312a33fcf2</update_guid>
+<update_guid_history>b370c64442548300a9b926312a33fcf2:-1559788113,9eeffd045754830081927a84e4777b9b:1322113238</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_column_eaeffd040f548300f59c47ace1050eae</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_column"><sp_column action="DELETE"><class_name/><order>3</order><size>3</size><size_lg/><size_sm>6</size_sm><size_xs/><sp_row display_value="">2aeffd040f548300f59c47ace1050ea6</sp_row><sys_class_name>sp_column</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:48:24</sys_created_on><sys_customer_update>false</sys_customer_update><sys_id>eaeffd040f548300f59c47ace1050eae</sys_id><sys_mod_count>0</sys_mod_count><sys_name>3</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_column_eaeffd040f548300f59c47ace1050eae</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:48:24</sys_updated_on></sp_column></record_update>]]></payload>
+<payload_hash>-2054859023</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:24</sys_created_on>
+<sys_id>e6effd040f548300f59c47ace1050eaf</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>15d80e179160000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:50:46</sys_updated_on>
+<table/>
+<target_name>3</target_name>
+<type>Column</type>
+<update_domain>global</update_domain>
+<update_guid>8970c6444e5483007989cdd8ce2a7752</update_guid>
+<update_guid_history>8970c6444e5483007989cdd8ce2a7752:-2054859023,26effd043e548300715322cc6e39e0af:-1200237426</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_row_2aeffd040f548300f59c47ace1050ea6</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_row"><sp_row action="DELETE"><class_name/><order>1</order><sp_column/><sp_container display_value="">22effd040f548300f59c47ace1050ea5</sp_container><sys_class_name>sp_row</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:48:24</sys_created_on><sys_customer_update>false</sys_customer_update><sys_id>2aeffd040f548300f59c47ace1050ea6</sys_id><sys_mod_count>0</sys_mod_count><sys_name>1</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_row_2aeffd040f548300f59c47ace1050ea6</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:48:24</sys_updated_on></sp_row></record_update>]]></payload>
+<payload_hash>-733511777</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:24</sys_created_on>
+<sys_id>66effd040f548300f59c47ace1050ea7</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>15d80e179810000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:50:46</sys_updated_on>
+<table/>
+<target_name>1</target_name>
+<type>Row</type>
+<update_domain>global</update_domain>
+<update_guid>cd70c6445c5483000be7687d8e772874</update_guid>
+<update_guid_history>cd70c6445c5483000be7687d8e772874:-733511777,a2effd04a1548300e26e9a456bf28ea7:-1147096728</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_column_6aeffd040f548300f59c47ace1050eab</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_column"><sp_column action="DELETE"><class_name/><order>2</order><size>3</size><size_lg/><size_sm>6</size_sm><size_xs/><sp_row display_value="">2aeffd040f548300f59c47ace1050ea6</sp_row><sys_class_name>sp_column</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:48:24</sys_created_on><sys_customer_update>false</sys_customer_update><sys_id>6aeffd040f548300f59c47ace1050eab</sys_id><sys_mod_count>0</sys_mod_count><sys_name>2</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_column_6aeffd040f548300f59c47ace1050eab</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:48:24</sys_updated_on></sp_column></record_update>]]></payload>
+<payload_hash>179052625</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:24</sys_created_on>
+<sys_id>66effd040f548300f59c47ace1050eac</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>15d80e178ec0000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:50:46</sys_updated_on>
+<table/>
+<target_name>2</target_name>
+<type>Column</type>
+<update_domain>global</update_domain>
+<update_guid>4170c64495548300b0ddac54e4a3ed4f</update_guid>
+<update_guid_history>4170c64495548300b0ddac54e4a3ed4f:179052625,a2effd042754830047a4b0c1e0b576ac:752340684</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_column_eeeffd040f548300f59c47ace1050ea7</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_column"><sp_column action="DELETE"><class_name/><order>1</order><size>3</size><size_lg/><size_sm>6</size_sm><size_xs/><sp_row display_value="">2aeffd040f548300f59c47ace1050ea6</sp_row><sys_class_name>sp_column</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:48:24</sys_created_on><sys_customer_update>false</sys_customer_update><sys_id>eeeffd040f548300f59c47ace1050ea7</sys_id><sys_mod_count>0</sys_mod_count><sys_name>1</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_column_eeeffd040f548300f59c47ace1050ea7</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:48:24</sys_updated_on></sp_column></record_update>]]></payload>
+<payload_hash>-1882003023</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:24</sys_created_on>
+<sys_id>2eeffd040f548300f59c47ace1050ea8</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>15d80e1793d0000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:50:46</sys_updated_on>
+<table/>
+<target_name>1</target_name>
+<type>Column</type>
+<update_domain>global</update_domain>
+<update_guid>0170c6447e5483006e939c0985622a6f</update_guid>
+<update_guid_history>0170c6447e5483006e939c0985622a6f:-1882003023,6aeffd04ea54830073c61a67f60f0aa8:-1590048502</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_column_eeeffd040f548300f59c47ace1050eb1</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_column"><sp_column action="DELETE"><class_name/><order>4</order><size>3</size><size_lg/><size_sm>6</size_sm><size_xs/><sp_row display_value="">2aeffd040f548300f59c47ace1050ea6</sp_row><sys_class_name>sp_column</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:48:24</sys_created_on><sys_customer_update>false</sys_customer_update><sys_id>eeeffd040f548300f59c47ace1050eb1</sys_id><sys_mod_count>0</sys_mod_count><sys_name>4</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_column_eeeffd040f548300f59c47ace1050eb1</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:48:24</sys_updated_on></sp_column></record_update>]]></payload>
+<payload_hash>6196625</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:25</sys_created_on>
+<sys_id>eaeffd040f548300f59c47ace1050eb2</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>15d80e179630000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:50:46</sys_updated_on>
+<table/>
+<target_name>4</target_name>
+<type>Column</type>
+<update_domain>global</update_domain>
+<update_guid>0970c644ce548300c1669017447a9372</update_guid>
+<update_guid_history>0970c644ce548300c1669017447a9372:6196625,2aeffd04e15483006095e020ff730ab2:1142151760</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_container_22effd040f548300f59c47ace1050ea5</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_container"><sp_container action="DELETE"><background_color/><background_image/><background_style>default</background_style><bootstrap_alt>false</bootstrap_alt><class_name>homepage-quicklinks</class_name><container_class_name/><name>SN2GIT  - Container 3</name><order>3</order><sp_page display_value="sn2git_index">9aeff5800f548300f59c47ace1050eac</sp_page><subheader>false</subheader><sys_class_name>sp_container</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:48:24</sys_created_on><sys_customer_update>false</sys_customer_update><sys_id>22effd040f548300f59c47ace1050ea5</sys_id><sys_mod_count>2</sys_mod_count><sys_name>SN2GIT  - Container 3</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_container_22effd040f548300f59c47ace1050ea5</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:49:22</sys_updated_on><title>Quick Links</title><width>container</width></sp_container></record_update>]]></payload>
+<payload_hash>-112705354</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:24</sys_created_on>
+<sys_id>6eeffd040f548300f59c47ace1050ea5</sys_id>
+<sys_mod_count>3</sys_mod_count>
+<sys_recorded_at>15d80e179a60000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:50:46</sys_updated_on>
+<table/>
+<target_name>SN2GIT  - Container 3</target_name>
+<type>Container</type>
+<update_domain>global</update_domain>
+<update_guid>8970c6442e548300fe4b023f4258e977</update_guid>
+<update_guid_history>8970c6442e548300fe4b023f4258e977:-112705354,e020c24427548300f33c9509441d3313:1842118570,2000c64c15108300ea663b7122d8198c:1639099885,aaeffd04985483008710eb4116c93ba5:1298764239</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_instance_link_a2effd040f548300f59c47ace1050ead</name>
+<payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;record_update table="sp_instance_link"&gt;&lt;sp_instance_link action="DELETE"&gt;&lt;active&gt;true&lt;/active&gt;&lt;class_name/&gt;&lt;color&gt;success&lt;/color&gt;&lt;css/&gt;&lt;glyph&gt;book&lt;/glyph&gt;&lt;id/&gt;&lt;kb_article/&gt;&lt;kb_category/&gt;&lt;kb_topic/&gt;&lt;order&gt;0&lt;/order&gt;&lt;roles/&gt;&lt;sc_cat_item/&gt;&lt;sc_category/&gt;&lt;short_description&gt;Browse and search for articles, rate or submit feedback&lt;/short_description&gt;&lt;size&gt;md&lt;/size&gt;&lt;sp_column display_value="2"&gt;6aeffd040f548300f59c47ace1050eab&lt;/sp_column&gt;&lt;sp_page display_value="kb_view2"&gt;26c2e030d7201200a9addd173e24d437&lt;/sp_page&gt;&lt;sp_widget display_value="Icon Link"&gt;3caa67afcb13020000f8d856634c9c2e&lt;/sp_widget&gt;&lt;sys_class_name&gt;sp_instance_link&lt;/sys_class_name&gt;&lt;sys_created_by&gt;guhann&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2017-07-26 21:48:24&lt;/sys_created_on&gt;&lt;sys_customer_update&gt;false&lt;/sys_customer_update&gt;&lt;sys_id&gt;a2effd040f548300f59c47ace1050ead&lt;/sys_id&gt;&lt;sys_mod_count&gt;0&lt;/sys_mod_count&gt;&lt;sys_name&gt;Knowledge Base&lt;/sys_name&gt;&lt;sys_package display_value="Global" source="global"&gt;global&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_replace_on_upgrade&gt;false&lt;/sys_replace_on_upgrade&gt;&lt;sys_scope display_value="Global"&gt;global&lt;/sys_scope&gt;&lt;sys_update_name&gt;sp_instance_link_a2effd040f548300f59c47ace1050ead&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;guhann&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2017-07-26 21:48:24&lt;/sys_updated_on&gt;&lt;title&gt;Knowledge Base&lt;/title&gt;&lt;type&gt;page&lt;/type&gt;&lt;url/&gt;&lt;widget_parameters&gt;&lt;![CDATA[{
+	"link_template": {
+		"value": "Circle Icon",
+		"displayValue": "Circle Icon"
+	}
+}]]&gt;&lt;/widget_parameters&gt;&lt;/sp_instance_link&gt;&lt;/record_update&gt;</payload>
+<payload_hash>1651662003</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:24</sys_created_on>
+<sys_id>a2effd040f548300f59c47ace1050eae</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>15d80e0cdfc0000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:50:02</sys_updated_on>
+<table/>
+<target_name>Knowledge Base</target_name>
+<type>Instance with Link</type>
+<update_domain>global</update_domain>
+<update_guid>1e4046446d548300dfac65cf8ce1581b</update_guid>
+<update_guid_history>1e4046446d548300dfac65cf8ce1581b:1651662003,eeeffd044f5483002e0e64968b2e57ad:-1824398169</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_instance_link_26effd040f548300f59c47ace1050eb0</name>
+<payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;record_update table="sp_instance_link"&gt;&lt;sp_instance_link action="DELETE"&gt;&lt;active&gt;true&lt;/active&gt;&lt;class_name/&gt;&lt;color&gt;warning&lt;/color&gt;&lt;css/&gt;&lt;glyph&gt;child&lt;/glyph&gt;&lt;id/&gt;&lt;kb_article/&gt;&lt;kb_category/&gt;&lt;kb_topic/&gt;&lt;order&gt;0&lt;/order&gt;&lt;roles/&gt;&lt;sc_cat_item/&gt;&lt;sc_category display_value="Can We Help You?"&gt;e15706fc0a0a0aa7007fc21e1ab70c2f&lt;/sc_category&gt;&lt;short_description&gt;Contact support to make a request, or report a problem&lt;/short_description&gt;&lt;size&gt;md&lt;/size&gt;&lt;sp_column display_value="3"&gt;eaeffd040f548300f59c47ace1050eae&lt;/sp_column&gt;&lt;sp_page display_value="sc_category"&gt;07261a2147132100ba13a5554ee49092&lt;/sp_page&gt;&lt;sp_widget display_value="Icon Link"&gt;3caa67afcb13020000f8d856634c9c2e&lt;/sp_widget&gt;&lt;sys_class_name&gt;sp_instance_link&lt;/sys_class_name&gt;&lt;sys_created_by&gt;guhann&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2017-07-26 21:48:24&lt;/sys_created_on&gt;&lt;sys_customer_update&gt;false&lt;/sys_customer_update&gt;&lt;sys_id&gt;26effd040f548300f59c47ace1050eb0&lt;/sys_id&gt;&lt;sys_mod_count&gt;0&lt;/sys_mod_count&gt;&lt;sys_name&gt;Get Help&lt;/sys_name&gt;&lt;sys_package display_value="Global" source="global"&gt;global&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_replace_on_upgrade&gt;false&lt;/sys_replace_on_upgrade&gt;&lt;sys_scope display_value="Global"&gt;global&lt;/sys_scope&gt;&lt;sys_update_name&gt;sp_instance_link_26effd040f548300f59c47ace1050eb0&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;guhann&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2017-07-26 21:48:24&lt;/sys_updated_on&gt;&lt;title&gt;Get Help&lt;/title&gt;&lt;type&gt;sc_category&lt;/type&gt;&lt;url/&gt;&lt;widget_parameters&gt;&lt;![CDATA[{
+	"link_template": {
+		"value": "Circle Icon",
+		"displayValue": "Circle Icon"
+	}
+}]]&gt;&lt;/widget_parameters&gt;&lt;/sp_instance_link&gt;&lt;/record_update&gt;</payload>
+<payload_hash>1632765904</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:24</sys_created_on>
+<sys_id>a6effd040f548300f59c47ace1050eb1</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>15d80e0bbff0000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:49:58</sys_updated_on>
+<table/>
+<target_name>Get Help</target_name>
+<type>Instance with Link</type>
+<update_domain>global</update_domain>
+<update_guid>1140424482548300be21d15210c2cd7d</update_guid>
+<update_guid_history>1140424482548300be21d15210c2cd7d:1632765904,e2effd04d5548300e4553ad783cd15b1:-2061000252</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_instance_link_2aeffd040f548300f59c47ace1050eb3</name>
+<payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;record_update table="sp_instance_link"&gt;&lt;sp_instance_link action="DELETE"&gt;&lt;active&gt;true&lt;/active&gt;&lt;class_name/&gt;&lt;color&gt;danger&lt;/color&gt;&lt;css/&gt;&lt;glyph&gt;comments&lt;/glyph&gt;&lt;id/&gt;&lt;kb_article/&gt;&lt;kb_category/&gt;&lt;kb_topic/&gt;&lt;order&gt;0&lt;/order&gt;&lt;roles/&gt;&lt;sc_cat_item display_value="Ask a Question"&gt;12147da2d7532100a9ad1e173e24d4de&lt;/sc_cat_item&gt;&lt;sc_category/&gt;&lt;short_description&gt;Community-sourced answers to your questions&lt;/short_description&gt;&lt;size&gt;md&lt;/size&gt;&lt;sp_column display_value="4"&gt;eeeffd040f548300f59c47ace1050eb1&lt;/sp_column&gt;&lt;sp_page display_value="sqa_tagged_questions"&gt;c8b2e216d701120023c84f80de6103e9&lt;/sp_page&gt;&lt;sp_widget display_value="Icon Link"&gt;3caa67afcb13020000f8d856634c9c2e&lt;/sp_widget&gt;&lt;sys_class_name&gt;sp_instance_link&lt;/sys_class_name&gt;&lt;sys_created_by&gt;guhann&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2017-07-26 21:48:25&lt;/sys_created_on&gt;&lt;sys_customer_update&gt;false&lt;/sys_customer_update&gt;&lt;sys_id&gt;2aeffd040f548300f59c47ace1050eb3&lt;/sys_id&gt;&lt;sys_mod_count&gt;0&lt;/sys_mod_count&gt;&lt;sys_name&gt;Community&lt;/sys_name&gt;&lt;sys_package display_value="Global" source="global"&gt;global&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_replace_on_upgrade&gt;false&lt;/sys_replace_on_upgrade&gt;&lt;sys_scope display_value="Global"&gt;global&lt;/sys_scope&gt;&lt;sys_update_name&gt;sp_instance_link_2aeffd040f548300f59c47ace1050eb3&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;guhann&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2017-07-26 21:48:25&lt;/sys_updated_on&gt;&lt;title&gt;Community&lt;/title&gt;&lt;type&gt;url&lt;/type&gt;&lt;url&gt;?id=sqa_tagged_questions&lt;/url&gt;&lt;widget_parameters&gt;&lt;![CDATA[{
+	"link_template": {
+		"value": "Circle Icon",
+		"displayValue": "Circle Icon"
+	}
+}]]&gt;&lt;/widget_parameters&gt;&lt;/sp_instance_link&gt;&lt;/record_update&gt;</payload>
+<payload_hash>-526368457</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:25</sys_created_on>
+<sys_id>6aeffd040f548300f59c47ace1050eb4</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>15d80e09e560000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:49:50</sys_updated_on>
+<table/>
+<target_name>Community</target_name>
+<type>Instance with Link</type>
+<update_domain>global</update_domain>
+<update_guid>5f300644d95483004f649cd088a9ba3e</update_guid>
+<update_guid_history>5f300644d95483004f649cd088a9ba3e:-526368457,a6effd04ab548300cf03ae872d68a9b4:132786115</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_instance_aaeffd040f548300f59c47ace1050eb9</name>
+<payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;record_update table="sp_instance"&gt;&lt;sp_instance action="DELETE"&gt;&lt;active&gt;true&lt;/active&gt;&lt;class_name/&gt;&lt;color&gt;default&lt;/color&gt;&lt;css/&gt;&lt;glyph/&gt;&lt;id/&gt;&lt;order&gt;0&lt;/order&gt;&lt;roles/&gt;&lt;short_description/&gt;&lt;size&gt;md&lt;/size&gt;&lt;sp_column display_value="1"&gt;62effd040f548300f59c47ace1050eb8&lt;/sp_column&gt;&lt;sp_widget display_value="Current Status"&gt;1e699082d7001200a9addd173e24d4e3&lt;/sp_widget&gt;&lt;sys_class_name&gt;sp_instance&lt;/sys_class_name&gt;&lt;sys_created_by&gt;guhann&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2017-07-26 21:48:25&lt;/sys_created_on&gt;&lt;sys_customer_update&gt;false&lt;/sys_customer_update&gt;&lt;sys_id&gt;aaeffd040f548300f59c47ace1050eb9&lt;/sys_id&gt;&lt;sys_mod_count&gt;0&lt;/sys_mod_count&gt;&lt;sys_name&gt;Current Status&lt;/sys_name&gt;&lt;sys_package display_value="Global" source="global"&gt;global&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_replace_on_upgrade&gt;false&lt;/sys_replace_on_upgrade&gt;&lt;sys_scope display_value="Global"&gt;global&lt;/sys_scope&gt;&lt;sys_update_name&gt;sp_instance_aaeffd040f548300f59c47ace1050eb9&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;guhann&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2017-07-26 21:48:25&lt;/sys_updated_on&gt;&lt;title&gt;Current Status&lt;/title&gt;&lt;url/&gt;&lt;widget_parameters&gt;&lt;![CDATA[{
+	"standalone": {
+		"value": "true",
+		"displayValue": "true"
+	},
+	"show_outage_details": {
+		"value": "",
+		"displayValue": ""
+	}
+}]]&gt;&lt;/widget_parameters&gt;&lt;/sp_instance&gt;&lt;/record_update&gt;</payload>
+<payload_hash>1843117618</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:25</sys_created_on>
+<sys_id>eaeffd040f548300f59c47ace1050eba</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>15d80e07def0000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:49:42</sys_updated_on>
+<table/>
+<target_name>Current Status</target_name>
+<type>Instance</type>
+<update_domain>global</update_domain>
+<update_guid>55300644c8548300746e4259ab635a0b</update_guid>
+<update_guid_history>55300644c8548300746e4259ab635a0b:1843117618,2aeffd04985483006af682f763d134ba:-1258808410</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_instance_link_6aeffd040f548300f59c47ace1050ea9</name>
+<payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;record_update table="sp_instance_link"&gt;&lt;sp_instance_link action="DELETE"&gt;&lt;active&gt;true&lt;/active&gt;&lt;class_name/&gt;&lt;color&gt;info&lt;/color&gt;&lt;css/&gt;&lt;glyph&gt;briefcase&lt;/glyph&gt;&lt;id/&gt;&lt;kb_article/&gt;&lt;kb_category/&gt;&lt;kb_topic/&gt;&lt;order&gt;0&lt;/order&gt;&lt;roles/&gt;&lt;sc_cat_item/&gt;&lt;sc_category/&gt;&lt;short_description&gt;Browse the catalog for services and items you need&lt;/short_description&gt;&lt;size&gt;md&lt;/size&gt;&lt;sp_column display_value="1"&gt;eeeffd040f548300f59c47ace1050ea7&lt;/sp_column&gt;&lt;sp_page display_value="sc_home"&gt;fe87a11147132100ba13a5554ee490b9&lt;/sp_page&gt;&lt;sp_widget display_value="Icon Link"&gt;3caa67afcb13020000f8d856634c9c2e&lt;/sp_widget&gt;&lt;sys_class_name&gt;sp_instance_link&lt;/sys_class_name&gt;&lt;sys_created_by&gt;guhann&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2017-07-26 21:48:24&lt;/sys_created_on&gt;&lt;sys_customer_update&gt;false&lt;/sys_customer_update&gt;&lt;sys_id&gt;6aeffd040f548300f59c47ace1050ea9&lt;/sys_id&gt;&lt;sys_mod_count&gt;0&lt;/sys_mod_count&gt;&lt;sys_name&gt;Order Something&lt;/sys_name&gt;&lt;sys_package display_value="Global" source="global"&gt;global&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_replace_on_upgrade&gt;false&lt;/sys_replace_on_upgrade&gt;&lt;sys_scope display_value="Global"&gt;global&lt;/sys_scope&gt;&lt;sys_update_name&gt;sp_instance_link_6aeffd040f548300f59c47ace1050ea9&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;guhann&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2017-07-26 21:48:24&lt;/sys_updated_on&gt;&lt;title&gt;Order Something&lt;/title&gt;&lt;type&gt;page&lt;/type&gt;&lt;url/&gt;&lt;widget_parameters&gt;&lt;![CDATA[{
+	"template": {
+		"value": "Color Box",
+		"displayValue": "Color Box"
+	},
+	"link_template": {
+		"value": "Circle Icon",
+		"displayValue": "Circle Icon"
+	}
+}]]&gt;&lt;/widget_parameters&gt;&lt;/sp_instance_link&gt;&lt;/record_update&gt;</payload>
+<payload_hash>2133378900</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:24</sys_created_on>
+<sys_id>eeeffd040f548300f59c47ace1050eaa</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>15d80e02f670000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:49:22</sys_updated_on>
+<table/>
+<target_name>Order Something</target_name>
+<type>Instance with Link</type>
+<update_domain>global</update_domain>
+<update_guid>20208ac058548300857b03d8b3c5caf4</update_guid>
+<update_guid_history>20208ac058548300857b03d8b3c5caf4:2133378900,2eeffd04435483000dc9ba6af74effaa:605013216</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_instance_a6effd040f548300f59c47ace1050ea3</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_instance"><sp_instance action="INSERT_OR_UPDATE"><active>true</active><class_name/><color>default</color><css/><glyph/><id/><order>0</order><roles/><short_description/><size>md</size><sp_column display_value="1">6eeffd040f548300f59c47ace1050ea1</sp_column><sp_widget display_value="Typeahead Search">fa20ec02cb31020000f8d856634c9ce9</sp_widget><sys_class_name>sp_instance</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:48:24</sys_created_on><sys_customer_update>false</sys_customer_update><sys_id>a6effd040f548300f59c47ace1050ea3</sys_id><sys_mod_count>1</sys_mod_count><sys_name>Search</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_instance_a6effd040f548300f59c47ace1050ea3</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:49:22</sys_updated_on><title>Search</title><url/><widget_parameters/></sp_instance></record_update>]]></payload>
+<payload_hash>1840916167</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:24</sys_created_on>
+<sys_id>e6effd040f548300f59c47ace1050ea4</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>15d80e030bc0000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:49:22</sys_updated_on>
+<table/>
+<target_name>Search</target_name>
+<type>Instance</type>
+<update_domain>global</update_domain>
+<update_guid>6020c244ad548300104588695230761c</update_guid>
+<update_guid_history>6020c244ad548300104588695230761c:1840916167,26effd041d54830061eaa16428ae42a4:-890954074</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_page_9aeff5800f548300f59c47ace1050eac</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_page"><sp_page action="INSERT_OR_UPDATE"><css>section.page {
+	background-color: $sp-homepage-bg;
+}
+section.page, main.body {
+    padding-top: 0px !important;
+}
+</css><draft>false</draft><id>sn2git_index</id><internal>false</internal><public>false</public><roles/><short_description/><sys_class_name>sp_page</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:48:24</sys_created_on><sys_customer_update>false</sys_customer_update><sys_id>9aeff5800f548300f59c47ace1050eac</sys_id><sys_mod_count>1</sys_mod_count><sys_name>sn2git_index</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_page_9aeff5800f548300f59c47ace1050eac</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:48:49</sys_updated_on><title>SN2GIT </title></sp_page></record_update>]]></payload>
+<payload_hash>595955623</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:24</sys_created_on>
+<sys_id>d2effd040f548300f59c47ace1050e91</sys_id>
+<sys_mod_count>1</sys_mod_count>
+<sys_recorded_at>15d80dfb1bf0000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:48:49</sys_updated_on>
+<table/>
+<target_name>sn2git_index</target_name>
+<type>Page</type>
+<update_domain>global</update_domain>
+<update_guid>e80002441d548300299a6f83172332f2</update_guid>
+<update_guid_history>e80002441d548300299a6f83172332f2:595955623,12effd04d7548300acdefa75d03bac91:-882710553</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_row_a6effd040f548300f59c47ace1050ea0</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_row"><sp_row action="INSERT_OR_UPDATE"><class_name/><order>1</order><sp_column/><sp_container display_value="Copy of Service Portal (1) - Container 2">9eeffd040f548300f59c47ace1050e9e</sp_container><sys_class_name>sp_row</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:48:24</sys_created_on><sys_customer_update>false</sys_customer_update><sys_id>a6effd040f548300f59c47ace1050ea0</sys_id><sys_mod_count>0</sys_mod_count><sys_name>1</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_row_a6effd040f548300f59c47ace1050ea0</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:48:24</sys_updated_on></sp_row></record_update>]]></payload>
+<payload_hash>1522250444</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:24</sys_created_on>
+<sys_id>e2effd040f548300f59c47ace1050ea1</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_recorded_at>15d80df4f2e0000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:48:24</sys_updated_on>
+<table/>
+<target_name>1</target_name>
+<type>Row</type>
+<update_domain>global</update_domain>
+<update_guid>22effd042f5483000a974d10e0ceeaa1</update_guid>
+<update_guid_history>22effd042f5483000a974d10e0ceeaa1:1522250444</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sp_column_6eeffd040f548300f59c47ace1050ea1</name>
+<payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_column"><sp_column action="INSERT_OR_UPDATE"><class_name/><order>1</order><size>12</size><size_lg/><size_sm/><size_xs>12</size_xs><sp_row display_value="1">a6effd040f548300f59c47ace1050ea0</sp_row><sys_class_name>sp_column</sys_class_name><sys_created_by>guhann</sys_created_by><sys_created_on>2017-07-26 21:48:24</sys_created_on><sys_customer_update>false</sys_customer_update><sys_id>6eeffd040f548300f59c47ace1050ea1</sys_id><sys_mod_count>0</sys_mod_count><sys_name>1</sys_name><sys_package display_value="Global" source="global">global</sys_package><sys_policy/><sys_replace_on_upgrade>false</sys_replace_on_upgrade><sys_scope display_value="Global">global</sys_scope><sys_update_name>sp_column_6eeffd040f548300f59c47ace1050ea1</sys_update_name><sys_updated_by>guhann</sys_updated_by><sys_updated_on>2017-07-26 21:48:24</sys_updated_on></sp_column></record_update>]]></payload>
+<payload_hash>1362436776</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-26 21:48:24</sys_created_on>
+<sys_id>aaeffd040f548300f59c47ace1050ea2</sys_id>
+<sys_mod_count>0</sys_mod_count>
+<sys_recorded_at>15d80df4f420000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 21:48:24</sys_updated_on>
+<table/>
+<target_name>1</target_name>
+<type>Column</type>
+<update_domain>global</update_domain>
+<update_guid>e6effd0408548300d450833ea13b89a2</update_guid>
+<update_guid_history>e6effd0408548300d450833ea13b89a2:1362436776</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_ui_action_754bc7670f804300f59c47ace1050e08</name>
+<payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;record_update sys_domain="global" table="sys_ui_action"&gt;&lt;sys_ui_action action="INSERT_OR_UPDATE"&gt;&lt;action_name&gt;push_to_git&lt;/action_name&gt;&lt;active&gt;true&lt;/active&gt;&lt;client&gt;true&lt;/client&gt;&lt;comments/&gt;&lt;condition/&gt;&lt;form_action&gt;true&lt;/form_action&gt;&lt;form_button&gt;true&lt;/form_button&gt;&lt;form_context_menu&gt;false&lt;/form_context_menu&gt;&lt;form_link&gt;false&lt;/form_link&gt;&lt;form_style/&gt;&lt;hint/&gt;&lt;list_action&gt;false&lt;/list_action&gt;&lt;list_banner_button&gt;false&lt;/list_banner_button&gt;&lt;list_button&gt;false&lt;/list_button&gt;&lt;list_choice&gt;false&lt;/list_choice&gt;&lt;list_context_menu&gt;false&lt;/list_context_menu&gt;&lt;list_link&gt;false&lt;/list_link&gt;&lt;list_save_with_form_button&gt;false&lt;/list_save_with_form_button&gt;&lt;list_style/&gt;&lt;name&gt;Push to GIT&lt;/name&gt;&lt;onclick&gt;pushToGIT();&lt;/onclick&gt;&lt;order&gt;100&lt;/order&gt;&lt;script&gt;&lt;![CDATA[function pushToGIT() {
+	var SNtoGitAjax = new GlideAjax('SNtoGIT');
+	SNtoGitAjax.addParam('sysparm_name','pushToGIT');
+	SNtoGitAjax.addParam('sysparm_table',g_form.getTableName());
+	SNtoGitAjax.addParam('sysparm_sys_id',g_form.getUniqueValue());
+	SNtoGitAjax.getXMLWait();
+	var updateSetDetails = btoa(SNtoGitAjax.getAnswer());
+
+	var filePath = g_form.getValue('name') + '.xml';
+	var obj = {
+		"message": "Commit from ServiceNow",
+		"committer": {
+			"name": "GuhanN",
+			"email": "guhann1991@gmail.com"
+		},
+		"branch": "master",
+		"content": updateSetDetails,
+		"tree": "525656787163010b5020a19b6aa3ef6373ba68fc",
+		"parent": {
+			"sha": "525656787163010b5020a19b6aa3ef6373ba68fc"
+		}
+	};
+	var requestBody = JSON.stringify(obj);
+	console.log(requestBody);
+	var client = new XMLHttpRequest();
+	client.open("PUT","https:api.github.com/repos/GuhanN/ServiceNow-Test/contents/"+filePath);
+	client.setRequestHeader('Accept','application/json');
+	client.setRequestHeader('Content-Type','application/json');
+	client.setRequestHeader('Authorization', 'Basic '+btoa('guhann1991@gmail.com'+':'+'myPwd1@github'));
+	client.onreadystatechange = function() {
+		if(this.readyState == this.DONE) {
+			alert('response: '+this.status + ' ~ ' + this.response);
+			//document.getElementById("response").innerHTML=this.status + this.response;
+		}
+	};
+	client.send(requestBody);
+}]]&gt;&lt;/script&gt;&lt;show_insert&gt;true&lt;/show_insert&gt;&lt;show_multiple_update&gt;false&lt;/show_multiple_update&gt;&lt;show_query&gt;false&lt;/show_query&gt;&lt;show_update&gt;true&lt;/show_update&gt;&lt;sys_class_name&gt;sys_ui_action&lt;/sys_class_name&gt;&lt;sys_created_by&gt;guhann&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2017-07-25 14:02:42&lt;/sys_created_on&gt;&lt;sys_customer_update&gt;false&lt;/sys_customer_update&gt;&lt;sys_domain&gt;global&lt;/sys_domain&gt;&lt;sys_domain_path&gt;/&lt;/sys_domain_path&gt;&lt;sys_id&gt;754bc7670f804300f59c47ace1050e08&lt;/sys_id&gt;&lt;sys_mod_count&gt;19&lt;/sys_mod_count&gt;&lt;sys_name&gt;Push to GIT&lt;/sys_name&gt;&lt;sys_overrides/&gt;&lt;sys_package display_value="Global" source="global"&gt;global&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_replace_on_upgrade&gt;false&lt;/sys_replace_on_upgrade&gt;&lt;sys_scope display_value="Global"&gt;global&lt;/sys_scope&gt;&lt;sys_update_name&gt;sys_ui_action_754bc7670f804300f59c47ace1050e08&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;guhann&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2017-07-26 14:36:31&lt;/sys_updated_on&gt;&lt;table&gt;sys_update_set&lt;/table&gt;&lt;ui11_compatible&gt;true&lt;/ui11_compatible&gt;&lt;ui16_compatible&gt;false&lt;/ui16_compatible&gt;&lt;/sys_ui_action&gt;&lt;/record_update&gt;</payload>
+<payload_hash>888709122</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-25 14:02:42</sys_created_on>
+<sys_id>36bbcfa30f804300f59c47ace1050e7d</sys_id>
+<sys_mod_count>22</sys_mod_count>
+<sys_recorded_at>15d7f53e8000000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-26 14:36:31</sys_updated_on>
+<table>sys_update_set</table>
+<target_name>Push to GIT</target_name>
+<type>UI Action</type>
+<update_domain>global</update_domain>
+<update_guid>841d1c4c07108300c1127b0a2541546c</update_guid>
+<update_guid_history>841d1c4c07108300c1127b0a2541546c:888709122,23fadcff6f4443006195dc39551936b9:-1072337612,09ca10339e844300879db7b00c0f1e6e:-1156082736,d35adcbb29444300953a9588ca8834df:1562308123,8ed710bf9a4443001e86b8f9e3e817dc:-1072337612,f77c00b3ca444300d26de165aa11d598:-795881966,7c9a04b3e044430083429983e5be3633:1445773997,b57944f32b444300070d3b1215850543:1190738395,9ba748bfed044300aafc23dd6040cee6:-543274835,8b8348bf36044300b692b549d271b0df:-1079372882,61f284b7760443002bcda213e48dc43e:-436146070,6691c03f82044300e6bac5d93a703480:-486349176,af21807b750443009aa5dcc811db2cd7:-985598404,dfc08cfb57044300460c7d86c155b75c:-698386049,3d6084b76a044300da6ea892c7a20837:272789694,2400447b080443002bf61d846c0bcebb:-945699598,5e8ff7eb6a0443007951fd6a71982d9f:1237772946,f48ebb6774044300183a3ae462e4ae83:1670174422,117d3be3040443001c0f4701d7aa8e37:-961503713,3d6253a75480430088cfae19bb9ee5ef:-2112953281,5d3117a7e88043001a475ce12362ab35:1049709682,f02cc76758804300ba11ef7db4a1f60e:1158679157,72bbcfa31f804300e7963c5abcd7f27d:1168710545</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_ui_page_a694c8ff0f044300f59c47ace1050e59</name>
+<payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;record_update table="sys_ui_page"&gt;&lt;sys_ui_page action="INSERT_OR_UPDATE"&gt;&lt;category&gt;general&lt;/category&gt;&lt;client_script&gt;&lt;![CDATA[var SNtoGitAjax = new GlideAjax('SNtoGIT');
+SNtoGitAjax.addParam('sysparm_name','pushToGIT');
+SNtoGitAjax.addParam('sysparm_table',g_form.getTableName());
+SNtoGitAjax.addParam('sysparm_sys_id',g_form.getUniqueValue());
+SNtoGitAjax.getXMLWait();
+var updateSetDetails = btoa(SNtoGitAjax.getAnswer());
+
+var filePath = g_form.getValue('name') + '.xml';
+var obj = {
+	"message": "Commit from ServiceNow",
+	"committer": {
+		"name": "GuhanN",
+		"email": "guhann1991@gmail.com"
+	},
+	"branch": "master",
+	"content": updateSetDetails,
+	"tree": "525656787163010b5020a19b6aa3ef6373ba68fc",
+	"parent": {
+		"sha": "525656787163010b5020a19b6aa3ef6373ba68fc"
+	}
+};
+var requestBody = JSON.stringify(obj);
+console.log(requestBody);
+var client = new XMLHttpRequest();
+client.open("PUT","https:api.github.com/repos/GuhanN/ServiceNow-Test/contents/"+filePath);
+client.setRequestHeader('Accept','application/json');
+client.setRequestHeader('Content-Type','application/json');
+client.setRequestHeader('Authorization', 'Basic '+btoa('guhann1991@gmail.com'+':'+'myPwd1@github'));
+client.onreadystatechange = function() {
+	if(this.readyState == this.DONE) {
+		alert('response: '+this.status + ' ~ ' + this.response);
+		//document.getElementById("response").innerHTML=this.status + this.response;
+	}
+};
+client.send(requestBody);]]&gt;&lt;/client_script&gt;&lt;description/&gt;&lt;direct&gt;false&lt;/direct&gt;&lt;endpoint/&gt;&lt;html&gt;&lt;![CDATA[&lt;?xml version="1.0" encoding="utf-8" ?&gt;
+&lt;j:jelly trim="false" xmlns:j="jelly:core" xmlns:g="glide" xmlns:j2="null" xmlns:g2="null"&gt;
+&lt;button onclick="pushToGIT()"&gt;Push to GIT&lt;/button&gt;
+&lt;/j:jelly&gt;]]&gt;&lt;/html&gt;&lt;name&gt;Push2GIT&lt;/name&gt;&lt;processing_script/&gt;&lt;sys_class_name&gt;sys_ui_page&lt;/sys_class_name&gt;&lt;sys_created_by&gt;guhann&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2017-07-25 18:17:53&lt;/sys_created_on&gt;&lt;sys_customer_update&gt;false&lt;/sys_customer_update&gt;&lt;sys_id&gt;a694c8ff0f044300f59c47ace1050e59&lt;/sys_id&gt;&lt;sys_mod_count&gt;5&lt;/sys_mod_count&gt;&lt;sys_name&gt;Push2GIT&lt;/sys_name&gt;&lt;sys_package display_value="Global" source="global"&gt;global&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_replace_on_upgrade&gt;false&lt;/sys_replace_on_upgrade&gt;&lt;sys_scope display_value="Global"&gt;global&lt;/sys_scope&gt;&lt;sys_update_name&gt;sys_ui_page_a694c8ff0f044300f59c47ace1050e59&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;guhann&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2017-07-25 19:37:43&lt;/sys_updated_on&gt;&lt;/sys_ui_page&gt;&lt;/record_update&gt;</payload>
+<payload_hash>-484840382</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-25 18:17:53</sys_created_on>
+<sys_id>b8268cbf0f044300f59c47ace1050e88</sys_id>
+<sys_mod_count>5</sys_mod_count>
+<sys_recorded_at>15d7b414d9d0000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-25 19:37:43</sys_updated_on>
+<table/>
+<target_name>Push2GIT</target_name>
+<type>UI Page</type>
+<update_domain>global</update_domain>
+<update_guid>9e6818bf3944430058ffdb9b48113eed</update_guid>
+<update_guid_history>9e6818bf3944430058ffdb9b48113eed:-484840382,f6e744bfeb0443003513fe7331043a6b:1848922673,e5e60473d6444300344cf00ca818236f:-126083483,0eb6c073ee444300ce398579fc5dacfb:668458379,597600730e44430091e7c7edd401d4bb:-837801563,f4268cbf98044300248280d2e5a7d188:-1194600140</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>INSERT_OR_UPDATE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_script_include_4842b2e30f404300f59c47ace1050eb4</name>
+<payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;record_update table="sys_script_include"&gt;&lt;sys_script_include action="INSERT_OR_UPDATE"&gt;&lt;access&gt;public&lt;/access&gt;&lt;active&gt;true&lt;/active&gt;&lt;api_name&gt;global.SNtoGIT&lt;/api_name&gt;&lt;client_callable&gt;true&lt;/client_callable&gt;&lt;description/&gt;&lt;name&gt;SNtoGIT&lt;/name&gt;&lt;script&gt;&lt;![CDATA[var SNtoGIT = Class.create();
+SNtoGIT.prototype = Object.extendsObject(AbstractAjaxProcessor, {
+	
+	pushToGIT : function() {
+		try {
+			var table = this.getParameter('sysparm_table');
+			var sysID = this.getParameter('sysparm_sys_id');
+			var recordURL = "https://dev14427.service-now.com/"+table+".do?XML&amp;useUnloadFormat=true&amp;sysparm_query=sys_id="+sysID;
+			var client = new GlideHTTPClient();
+			var method =  new Packages.org.apache.commons.httpclient.methods.GetMethod(recordURL);
+			var user = 'guhann';
+			var password = 'S@chin10dulkar';
+			client.setBasicAuth(user,password);
+			var status = client.executeMethod(method);
+			var recordXMLString = method.getResponseBodyAsString();
+			gs.log('recordXMLString: '+recordXMLString,'git');
+			return recordXMLString;
+		}
+		catch(e) {
+			gs.log('Exception @ '+e.lineNumber + ', ' + e.message,'git');
+		}
+	},
+	
+	getXMLData : function(table,sysID) {
+		try {
+			var recordURL = "https://dev14427.service-now.com/"+table+".do?XML&amp;useUnloadFormat=true&amp;sysparm_query=sys_id="+sysID;
+			var client = new GlideHTTPClient();
+			var method =  new Packages.org.apache.commons.httpclient.methods.GetMethod(recordURL);
+			var user = 'guhann';
+			var password = 'S@chin10dulkar';
+			client.setBasicAuth(user,password);
+			var status = client.executeMethod(method);
+			var recordXMLString = method.getResponseBodyAsString();
+			gs.log('recordXMLString: '+recordXMLString,'git');
+			return recordXMLString;
+		}
+		catch(e) {
+			gs.log('Exception @ '+e.lineNumber + ', ' + e.message,'git');
+		}
+	},
+	
+	type: 'SNtoGIT'
+});]]&gt;&lt;/script&gt;&lt;sys_class_name&gt;sys_script_include&lt;/sys_class_name&gt;&lt;sys_created_by&gt;guhann&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2017-07-25 12:14:33&lt;/sys_created_on&gt;&lt;sys_customer_update&gt;false&lt;/sys_customer_update&gt;&lt;sys_id&gt;4842b2e30f404300f59c47ace1050eb4&lt;/sys_id&gt;&lt;sys_mod_count&gt;10&lt;/sys_mod_count&gt;&lt;sys_name&gt;SNtoGIT&lt;/sys_name&gt;&lt;sys_package display_value="Global" source="global"&gt;global&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_replace_on_upgrade&gt;false&lt;/sys_replace_on_upgrade&gt;&lt;sys_scope display_value="Global"&gt;global&lt;/sys_scope&gt;&lt;sys_update_name&gt;sys_script_include_4842b2e30f404300f59c47ace1050eb4&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;guhann&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2017-07-25 19:15:05&lt;/sys_updated_on&gt;&lt;/sys_script_include&gt;&lt;/record_update&gt;</payload>
+<payload_hash>-58943657</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-25 12:14:35</sys_created_on>
+<sys_id>cff2fae30f404300f59c47ace1050e0c</sys_id>
+<sys_mod_count>10</sys_mod_count>
+<sys_recorded_at>15d7b2c9c1d0000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-25 19:15:07</sys_updated_on>
+<table/>
+<target_name>SNtoGIT</target_name>
+<type>Script Include</type>
+<update_domain>global</update_domain>
+<update_guid>9f3358bb16444300274a638e75644734</update_guid>
+<update_guid_history>9f3358bb16444300274a638e75644734:-58943657,e6a1d877e2444300b4c87a4990084ade:-1173010012,9a0dbb2b340443005872b784eb27aee1:-1586692653,f6699f6bd680430012648fbf4d6da7fc:1371416232,5ad81befd48043007e139f88dc409c69:-197817877,3552d7ab658043001df344d8cc3838b1:376437875,92fccba77e80430062c391a7c40c683e:-1789380015,79dcc3a7a18043006994e235f8725930:-1350237768,e28cc7a72580430029b34f26edb44f71:409543376,b0ba43e31d404300e847728548675e2b:-686060474,0ff2fae3ff4043003274ed631c80690c:465695841</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+<sys_update_xml action="INSERT_OR_UPDATE">
+<action>DELETE</action>
+<application display_value="Global">global</application>
+<category>customer</category>
+<comments/>
+<name>sys_ui_action_df4a2a2f0f004300f59c47ace1050ec6</name>
+<payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;record_update sys_domain="global" table="sys_ui_action"&gt;&lt;sys_ui_action action="DELETE"&gt;&lt;action_name&gt;push_to_git&lt;/action_name&gt;&lt;active&gt;true&lt;/active&gt;&lt;client&gt;false&lt;/client&gt;&lt;comments/&gt;&lt;condition&gt;pushToGIT();&lt;/condition&gt;&lt;form_action&gt;true&lt;/form_action&gt;&lt;form_button&gt;true&lt;/form_button&gt;&lt;form_context_menu&gt;false&lt;/form_context_menu&gt;&lt;form_link&gt;false&lt;/form_link&gt;&lt;form_style/&gt;&lt;hint/&gt;&lt;list_action&gt;false&lt;/list_action&gt;&lt;list_banner_button&gt;false&lt;/list_banner_button&gt;&lt;list_button&gt;false&lt;/list_button&gt;&lt;list_choice&gt;false&lt;/list_choice&gt;&lt;list_context_menu&gt;false&lt;/list_context_menu&gt;&lt;list_link&gt;false&lt;/list_link&gt;&lt;list_save_with_form_button&gt;false&lt;/list_save_with_form_button&gt;&lt;list_style/&gt;&lt;name&gt;Push to GIT&lt;/name&gt;&lt;onclick/&gt;&lt;order&gt;100&lt;/order&gt;&lt;script&gt;&lt;![CDATA[function pushToGIT() {
+	var SNtoGitAjax = new GlideAjax('SNtoGIT');
+	SNtoGitAjax.addParam('sysparm_name','pushToGIT');
+	SNtoGitAjax.addParam('sysparm_table',g_form.getTableName());
+	SNtoGitAjax.addParam('sysparm_sys_id',g_form.getUniqueValue());
+	SNtoGitAjax.getXML();
+	//var answer = SNtoGitAjax.getAnswer();	
+	//alert(answer);
+	
+// 	var filePath = g_form.getValue('name') + '.xml';
+// 	var obj = {
+// 		"message": "Commit from ServiceNow",
+// 		"committer": {
+// 			"name": "GuhanN",
+// 			"email": "guhann1991@gmail.com"
+// 		},
+// 		"branch": "master",
+// 		"content": "",
+// 		"tree": "525656787163010b5020a19b6aa3ef6373ba68fc",
+// 		"parent": {
+// 			"sha": "525656787163010b5020a19b6aa3ef6373ba68fc"
+// 		}
+// 	};
+	
+// 	var requestBody = JSON.stringify(obj);
+// 	var client = new XMLHttpRequest();
+// 	client.open("PUT","https://api.github.com/repos/GuhanN/ServiceNow-Test/contents/"+filePath);
+// 	client.setRequestHeader('Accept','application/json');
+// 	client.setRequestHeader('Content-Type','application/json');
+	
+// 	client.setRequestHeader('Authorization', 'Basic '+btoa('guhann1991@gmail.com'+':'+'myPwd1@github'));
+// 	client.onreadystatechange = function() {
+// 		if(this.readyState == this.DONE) {
+// 			alert(this.status);
+// 			//console.log('response: '+this.status + this.response);
+// 			//document.getElementById("response").innerHTML=this.status + this.response;
+// 		}
+// 	};
+// 	client.send(requestBody);
+}
+
+function getResponse(response) {
+	var answer = response.responseXML.documentElement.getAttribute('answer');
+	alert(answer);
+}]]&gt;&lt;/script&gt;&lt;show_insert&gt;false&lt;/show_insert&gt;&lt;show_multiple_update&gt;false&lt;/show_multiple_update&gt;&lt;show_query&gt;false&lt;/show_query&gt;&lt;show_update&gt;true&lt;/show_update&gt;&lt;sys_class_name&gt;sys_ui_action&lt;/sys_class_name&gt;&lt;sys_created_by&gt;guhann&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2017-07-25 11:36:39&lt;/sys_created_on&gt;&lt;sys_customer_update&gt;false&lt;/sys_customer_update&gt;&lt;sys_domain&gt;global&lt;/sys_domain&gt;&lt;sys_domain_path&gt;/&lt;/sys_domain_path&gt;&lt;sys_id&gt;df4a2a2f0f004300f59c47ace1050ec6&lt;/sys_id&gt;&lt;sys_mod_count&gt;8&lt;/sys_mod_count&gt;&lt;sys_name&gt;Push to GIT&lt;/sys_name&gt;&lt;sys_overrides/&gt;&lt;sys_package display_value="Global" source="global"&gt;global&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_replace_on_upgrade&gt;false&lt;/sys_replace_on_upgrade&gt;&lt;sys_scope display_value="Global"&gt;global&lt;/sys_scope&gt;&lt;sys_update_name&gt;sys_ui_action_df4a2a2f0f004300f59c47ace1050ec6&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;guhann&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2017-07-25 13:59:51&lt;/sys_updated_on&gt;&lt;table&gt;sys_update_set&lt;/table&gt;&lt;ui11_compatible&gt;true&lt;/ui11_compatible&gt;&lt;ui16_compatible&gt;false&lt;/ui16_compatible&gt;&lt;/sys_ui_action&gt;&lt;/record_update&gt;</payload>
+<payload_hash>508942344</payload_hash>
+<remote_update_set display_value=""/>
+<replace_on_upgrade>false</replace_on_upgrade>
+<sys_created_by>guhann</sys_created_by>
+<sys_created_on>2017-07-25 12:17:11</sys_created_on>
+<sys_id>8193b6a30f404300f59c47ace1050e5c</sys_id>
+<sys_mod_count>6</sys_mod_count>
+<sys_recorded_at>15d7a106e9f0000001</sys_recorded_at>
+<sys_updated_by>guhann</sys_updated_by>
+<sys_updated_on>2017-07-25 14:04:43</sys_updated_on>
+<table>sys_update_set</table>
+<target_name>Push to GIT</target_name>
+<type>UI Action</type>
+<update_domain>global</update_domain>
+<update_guid>103c07677a804300905259c88b8f42ac</update_guid>
+<update_guid_history>103c07677a804300905259c88b8f42ac:508942344,d51bcf63c38043007a7feac6f0c27180:788770684,b418cfa3168043000998d14ea4a51077:930376744,cef7c7a31e4043006a13330b765b06e2:287266069,1b778f6390804300d286288b6b08efc8:1647144324,04c503e32d40430068c7a0680ed200b5:1600251696,0193b6a3184043006bb05d77b5a62b5c:-605661595,c3813a2fd700430069fe36f251c969ce:-1006776199,d7613eaf35004300e5bb8e131a995e2e:1478616988,974a2a2f8d004300aa06d557fa4c8dc8:1255317315</update_guid_history>
+<update_set display_value="Publish to GIT">bb12f6a30f404300f59c47ace1050e28</update_set>
+<view/>
+</sys_update_xml>
+</unload>
